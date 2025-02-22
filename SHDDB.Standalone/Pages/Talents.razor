@@ -1,0 +1,59 @@
+﻿@page "/talents"
+@using SHDDB.DTO.DAL
+@using SHDDB.DataProvider.Static
+@using SHDDB.Standalone.Components.Talents
+
+<PageTitle>Talents</PageTitle>
+
+<MudDivider DividerType="DividerType.Middle" Class="my-6" />
+
+<MudPaper MinWidth="100%" Elevation="25" Class="d-flex py-2">
+    <MudSwitch @bind-value="_listView" Label="List View" Color="Color.Warning"/>
+
+    <MudDivider Vertical="true" FlexItem="true" Class="mx-4"/>
+
+    <MudButtonGroup Color="Color.Primary" Variant="Variant.Filled">
+        <MudButton>One</MudButton>
+        <MudButton>Two</MudButton>
+        <MudButton>Three</MudButton>
+    </MudButtonGroup>
+</MudPaper>
+
+<MudDivider DividerType="DividerType.Middle" Class="my-6"/>
+
+@if (_listView)
+{
+    <MudExpansionPanels MultiExpansion="true">
+        @foreach (var talent in CurrentTalents)
+        {
+            <MudExpansionPanel Text="@talent.Name">
+                <TalentInfo Talent="@talent" />
+            </MudExpansionPanel>
+        }
+    </MudExpansionPanels>
+}
+else
+{
+    <MudGrid Spacing="4" Justify="Justify.Center">
+        @foreach (var talent in CurrentTalents)
+        {
+            <MudItem>
+                <MudPaper Elevation="3" Class="talent-page d-flex flex-column align-center justify-center mud-width-full py-10 px-4">
+                    <TalentInfo Talent="@talent" />
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private IEnumerable<TalentData> CurrentTalents { get; set; } = [];
+    private int CurrentTalentCount => CurrentTalents.Count();
+
+    private bool _listView = false;
+
+    protected override void OnInitialized()
+    {
+        CurrentTalents = StaticData.Talents.OrderBy(x => x.Name);
+    }
+}

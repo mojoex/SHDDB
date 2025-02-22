@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SHDDB.Common\SHDDB.Common.csproj" />
+    <ProjectReference Include="..\SHDDB.DTO\SHDDB.DTO.csproj" />
+  </ItemGroup>
+
+</Project>

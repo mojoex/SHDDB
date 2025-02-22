@@ -1,0 +1,19 @@
+﻿@using SHDDB.Common.Extensions
+@using SHDDB.CommonUI.Content
+@using SHDDB.DTO.DAL
+@using SHDDB.CommonUI.Styling
+
+<MudText Align="Align.Center">
+    <MudText Typo="Typo.h4" Class="pb-1">@Talent.Name</MudText>
+    <MudText Style="@ColourUtils.GetRarityColour(Talent.Type)">
+        @Talent.Type.GetString() @if (Talent.Type == DTO.Enums.TalentType.Perfect)
+        {
+            <MudIcon Style="mt-2" Size="Size.Small" Color="@Color.Warning" Icon="@Icons.Material.Filled.KeyboardDoubleArrowUp"/>
+        }
+    </MudText>
+    <MudText Typo="Typo.subtitle1">@TalentContent.GetTalentSummary(Talent.Values)</MudText>
+</MudText>
+
+@code {
+    [Parameter] public TalentData Talent { get; set; }
+}
