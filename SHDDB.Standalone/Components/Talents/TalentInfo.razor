@@ -2,18 +2,37 @@
 @using SHDDB.CommonUI.Content
 @using SHDDB.DTO.DAL
 @using SHDDB.CommonUI.Styling
+@using SHDDB.DTO.Enums
 
-<MudText Align="Align.Center">
-    <MudText Typo="Typo.h4" Class="pb-1">@Talent.Name</MudText>
-    <MudText Style="@ColourUtils.GetRarityColour(Talent.Type)">
-        @Talent.Type.GetString() @if (Talent.Type == DTO.Enums.TalentType.Perfect)
-        {
-            <MudIcon Style="mt-2" Size="Size.Small" Color="@Color.Warning" Icon="@Icons.Material.Filled.KeyboardDoubleArrowUp"/>
-        }
-    </MudText>
-    <MudText Typo="Typo.subtitle1">@TalentContent.GetTalentSummary(Talent.Values)</MudText>
-</MudText>
+<MudContainer @onclick=OnExpandCollapseClick Class="d-flex flex-column">
+    @if (Talent.Type == TalentType.Perfect)
+    {
+        <MudBadge Origin="Origin.CenterRight" Bordered Icon="@Icons.Material.Filled.KeyboardDoubleArrowUp" BadgeClass="ml-2">
+            <MudText Typo="Typo.h5" Color="Color.Primary">@Talent.Name</MudText>
+        </MudBadge>
+    }
+    else
+    {
+        <MudText Typo="Typo.h5" Color="Color.Primary">@Talent.Name</MudText>
+    }
+    <MudText Typo="Typo.subtitle2">@TalentContent.GetTalentSummary(Talent.Values)</MudText>
+    @if (!Minimal)
+    {
+        <MudCollapse Expanded="_expandedDetails">
+            <MudDivider DividerType="DividerType.Middle" />
+            This content is collapsible.
+        </MudCollapse>
+    }
+</MudContainer>
 
 @code {
-    [Parameter] public TalentData Talent { get; set; }
+    [Parameter] public required TalentData Talent { get; set; }
+    [Parameter] public bool Minimal { get; set; } = false;
+
+    private bool _expandedDetails = false;
+
+    private void OnExpandCollapseClick()
+    {
+        _expandedDetails = !_expandedDetails;
+    }
 }

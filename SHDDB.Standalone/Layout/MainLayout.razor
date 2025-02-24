@@ -1,6 +1,6 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider IsDarkMode="true" />
+<MudThemeProvider Theme="_themeManager.Theme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -17,7 +17,7 @@
             <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Edge="Edge.End" Href="https://github.com/mojoex/SHDDB" />
         </MudTooltip>
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="_themeManager.DrawerClipMode" Elevation="_themeManager.DrawerElevation">
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="_themeManager.DrawerElevation" Variant="DrawerVariant.Persistent">
         <MainNavMenu/>
     </MudDrawer>
     <MudMainContent>
@@ -30,7 +30,7 @@
 </MudLayout>
 
 @code {
-    bool _drawerOpen = false; 
+    bool _drawerOpen = true; 
     private ThemeManagerTheme _themeManager = new ThemeManagerTheme();
     public bool _themeManagerOpen = false;
 
