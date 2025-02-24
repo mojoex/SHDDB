@@ -1,0 +1,64 @@
+﻿<MudPaper MinWidth="375px" Square="false" Elevation="3" Class="talent-page flex-grow-1 rounded-xl pa-2" Style="text-align: center">
+    <div class="cursor-pointer" @onclick="OnExpandCollapseClick">
+        @if (Talent.Type == TalentType.Perfect)
+        {
+            <MudBadge Origin="Origin.CenterRight" Bordered Icon="@Icons.Material.Filled.KeyboardDoubleArrowUp" BadgeClass="ml-2">
+                <MudText Typo="Typo.h5" Color="Color.Primary">@Talent.Name</MudText>
+            </MudBadge>
+        }
+        else
+        {
+            <MudText Typo="Typo.h5" Color="Color.Primary">@Talent.Name</MudText>
+        }
+    </div>
+    <div class="d-flex justify-space-between px-4 mx-auto">
+        <MudText Typo="Typo.subtitle2">@TalentContent.GetTalentSummary(Talent.Values)</MudText>
+        @if (Talent.HasModifiers)
+        {
+            <div class="d-inline-flex justify-center align-content-center gap-2 py-2">
+                @if (Talent.HasChestModifier)
+                {
+                    <div class="d-flex flex-column align-center">
+                        <MudToggleIconButton @bind-Toggled="_useChest" Icon="@Icons.Material.Filled.Shield" ToggledColor="Color.Success" Disabled="!_expandedDetails"/>
+                        @* <MudImage Height="20" Width="20" Src="images/chest.png" />
+                        @if (_expandedDetails)
+                        {
+                            <MudSwitch @bind-Value="_useChest" Color="Color.Success" />
+                        } *@
+                    </div>
+                }
+
+                @if (Talent.HasBackpackModifier)
+                {
+                    <div class="d-flex flex-column align-center">
+                        <MudToggleIconButton @bind-Toggled="_useBackpack" Icon="@Icons.Material.Filled.Backpack" ToggledColor="Color.Success" Disabled="!_expandedDetails" />
+                        @* <MudImage Height="20" Width="20" Src="images/chest.png" />
+                        @if (_expandedDetails)
+                        {
+                            <MudSwitch @bind-Value="_useChest" Color="Color.Success" />
+                        } *@
+                    </div>
+                }
+            </div>
+        }
+    </div>
+    <MudCollapse Expanded="_expandedDetails">
+        <MudDivider DividerType="DividerType.Middle" />
+        <TalentValues Talent="Talent" UseBackpack="_useBackpack" UseChest="_useChest" />
+    </MudCollapse>
+</MudPaper>
+
+@code {
+    [Parameter] public required TalentData Talent { get; set; }
+    [Parameter] public bool Minimal { get; set; } = false;
+
+    private bool _expandedDetails { get; set; } = false;
+
+    private bool _useBackpack { get; set; } = false;
+    private bool _useChest { get; set; } = false;
+
+    private void OnExpandCollapseClick()
+    {
+        _expandedDetails = !_expandedDetails;
+    }
+}

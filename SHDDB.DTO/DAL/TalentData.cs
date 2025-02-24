@@ -70,6 +70,21 @@ namespace SHDDB.DTO.DAL
         /// The base talent of this talent if applicable
         /// </summary>
         public string? BaseVariant { get; set; }
+
+        /// <summary>
+        /// Indicates that this talent has modifiers
+        /// </summary>
+        public bool HasModifiers => HasBackpackModifier || HasChestModifier;
+
+        /// <summary>
+        /// Indicates that this Gearset talent has a backpack modifier
+        /// </summary>
+        public bool HasBackpackModifier => Type == TalentType.GearsetBase && Values.Any(x => x.HasBackbackModifier);
+
+        /// <summary>
+        /// Indicates that this Gearset talent has a chest modifier
+        /// </summary>
+        public bool HasChestModifier => Type == TalentType.GearsetBase && Values.Any(x => x.HasChestModifier);
     }
 
     /// <summary>

@@ -1,79 +1,72 @@
 ﻿@page "/talents"
-@using SHDDB.DTO.DAL
-@using SHDDB.DTO.Enums
-@using SHDDB.DataProvider.Static
 @using SHDDB.Standalone.Components.Talents
 
 <PageTitle>Talents</PageTitle>
 
-<MudContainer>
-    @* Filtering Paper *@
-    <MudPaper MinWidth="100%" Elevation="25" Class="d-flex py-2 mt-2">
-        @* Page View Style *@
-        <MudMenu Icon="@Icons.Material.Filled.FilterList" Class="ml-2" Color="Color.Info" Variant="Variant.Filled" Dense>
-            <MudMenuItem Icon="@Icons.Material.Filled.List" @onclick="() => _listView = true" />
-            <MudMenuItem Icon="@Icons.Material.Filled.GridView" @onclick="() => _listView = false" />
-        </MudMenu>
+@* Filtering Paper *@
+<MudPaper MinWidth="100%" Elevation="25" Class="d-flex py-2 mt-2">
+    @* Page View Style *@
+    <MudMenu Icon="@Icons.Material.Filled.FilterList" Class="ml-2" Color="Color.Info" Variant="Variant.Filled" Dense>
+        <MudMenuItem Icon="@Icons.Material.Filled.List" @onclick="() => _listView = true" />
+        <MudMenuItem Icon="@Icons.Material.Filled.GridView" @onclick="() => _listView = false" />
+    </MudMenu>
 
-        @* Filter Menu *@
-        <MudMenu Icon="@Icons.Material.Filled.FilterAlt" Color="Color.Tertiary" Variant="Variant.Filled" Dense>
-            <MudMenuItem Label="Clear" OnClick="ClearFilters"/>
-            <MudDivider />
-            <MudMenuItem>
-                <MudCheckBox T="bool" Dense Label="High-End" Value="@_typeFilters[TalentType.HighEnd]" ValueChanged=@((isChecked) => ToggleFilter(TalentType.HighEnd, isChecked))/>
-            </MudMenuItem>
-            <MudMenuItem>
-                <MudCheckBox T="bool" Dense Label="Gearsets" Value="@_typeFilters[TalentType.GearsetBase]" ValueChanged=@((isChecked) => ToggleFilter(TalentType.GearsetBase, isChecked)) />
-            </MudMenuItem>
-            <MudMenuItem>
-                <MudCheckBox T="bool" Dense Label="Perfect" Value="@_typeFilters[TalentType.Perfect]" ValueChanged=@((isChecked) => ToggleFilter(TalentType.Perfect, isChecked)) />
-            </MudMenuItem>
-            <MudMenuItem>
-                <MudCheckBox T="bool" Dense Label="Exotic" Value="@_typeFilters[TalentType.Exotic]" ValueChanged=@((isChecked) => ToggleFilter(TalentType.Exotic, isChecked)) />
-            </MudMenuItem>
-            <MudDivider />
-            <MudMenuItem>
-                <MudCheckBox T="bool" Dense Label="Backpack" Value="@_slotFilters[Slot.Backpack]" ValueChanged=@((isChecked) => ToggleFilter(Slot.Backpack, isChecked)) />
-            </MudMenuItem>
-            <MudMenuItem>
-                <MudCheckBox T="bool" Dense Label="Chest" Value="@_slotFilters[Slot.Chest]" ValueChanged=@((isChecked) => ToggleFilter(Slot.Chest, isChecked)) />
-            </MudMenuItem>
-            <MudMenuItem>
-                <MudCheckBox T="bool" Dense Label="Weapon" Value="@_slotFilters[Slot.Weapon]" ValueChanged=@((isChecked) => ToggleFilter(Slot.Weapon, isChecked)) />
-            </MudMenuItem>
-        </MudMenu>
+    @* Filter Menu *@
+    <MudMenu Icon="@Icons.Material.Filled.FilterAlt" Color="Color.Tertiary" Variant="Variant.Filled" Dense>
+        <MudMenuItem Label="Clear" OnClick="ClearFilters" />
+        <MudDivider />
+        <MudMenuItem>
+            <MudCheckBox T="bool" Dense Label="High-End" Value="@_typeFilters[TalentType.HighEnd]" ValueChanged=@((isChecked) => ToggleFilter(TalentType.HighEnd, isChecked)) />
+        </MudMenuItem>
+        <MudMenuItem>
+            <MudCheckBox T="bool" Dense Label="Gearsets" Value="@_typeFilters[TalentType.GearsetBase]" ValueChanged=@((isChecked) => ToggleFilter(TalentType.GearsetBase, isChecked)) />
+        </MudMenuItem>
+        <MudMenuItem>
+            <MudCheckBox T="bool" Dense Label="Perfect" Value="@_typeFilters[TalentType.Perfect]" ValueChanged=@((isChecked) => ToggleFilter(TalentType.Perfect, isChecked)) />
+        </MudMenuItem>
+        <MudMenuItem>
+            <MudCheckBox T="bool" Dense Label="Exotic" Value="@_typeFilters[TalentType.Exotic]" ValueChanged=@((isChecked) => ToggleFilter(TalentType.Exotic, isChecked)) />
+        </MudMenuItem>
+        <MudDivider />
+        <MudMenuItem>
+            <MudCheckBox T="bool" Dense Label="Backpack" Value="@_slotFilters[Slot.Backpack]" ValueChanged=@((isChecked) => ToggleFilter(Slot.Backpack, isChecked)) />
+        </MudMenuItem>
+        <MudMenuItem>
+            <MudCheckBox T="bool" Dense Label="Chest" Value="@_slotFilters[Slot.Chest]" ValueChanged=@((isChecked) => ToggleFilter(Slot.Chest, isChecked)) />
+        </MudMenuItem>
+        <MudMenuItem>
+            <MudCheckBox T="bool" Dense Label="Weapon" Value="@_slotFilters[Slot.Weapon]" ValueChanged=@((isChecked) => ToggleFilter(Slot.Weapon, isChecked)) />
+        </MudMenuItem>
+    </MudMenu>
 
-        <MudDivider Vertical="true" FlexItem="true" Class="mx-4" />
+    <MudDivider Vertical="true" FlexItem="true" Class="mx-4" />
 
-        @* Search Field *@
-        <MudTextField T="string" Value="@_searchText" Label="Search.. " Variant="Variant.Filled" ValueChanged=ApplyFilters Immediate/>
-    </MudPaper>
+    @* Search Field *@
+    <MudTextField T="string" Value="@_searchText" Label="Search.. " Variant="Variant.Filled" ValueChanged=ApplyFilters Immediate />
+</MudPaper>
 
-    <MudDivider DividerType="DividerType.Middle" Class="my-6" />
+<MudDivider DividerType="DividerType.Middle" Class="my-6" />
 
-    @if (_listView)
-    {
-        <MudExpansionPanels MultiExpansion="true" Outlined="false">
-            @foreach (var talent in CurrentTalents)
-            {
-                <MudExpansionPanel Text="@talent.Name">
-                    <TalentInfo Talent="@talent" />
-                </MudExpansionPanel>
-            }
-        </MudExpansionPanels>
-    }
-    else
-    {
-        <div class="d-flex flex-wrap flex-grow-1 gap-4 align-start">
-            @foreach (var talent in CurrentTalents)
-            {
-                <MudPaper Outlined Square="false" Elevation="3" Class="talent-page flex-grow-1 pa-2" Style="text-align: center;">
-                    <TalentInfo Talent="@talent" />
-                </MudPaper>
-            }
-        </div>
-    }
-</MudContainer>
+@if (_listView)
+{
+    <MudExpansionPanels MultiExpansion="true" Outlined="false">
+        @foreach (var talent in CurrentTalents)
+        {
+            <MudExpansionPanel Text="@talent.Name">
+                <TalentCard Talent="@talent" />
+            </MudExpansionPanel>
+        }
+    </MudExpansionPanels>
+}
+else
+{
+    <div class="d-flex flex-wrap flex-grow-1 gap-4 align-start">
+        @foreach (var talent in CurrentTalents)
+        {
+            <TalentCard Talent="@talent" />
+        }
+    </div>
+}
 
 
 @code {

@@ -1,0 +1,46 @@
+﻿<MudContainer Class="mx-auto">
+    <MudExpansionPanels Gutters MultiExpansion Outlined="false">
+        @foreach (var talentValue in Talent.Values)
+        {
+            <MudExpansionPanel Expanded>
+                <TitleContent>
+                    <div class="d-flex">
+                        <MudIcon Icon="@GetIconForValueType(talentValue)" Color="@GetIconColorForValueType(talentValue)"></MudIcon>
+                        <MudText Typo="Typo.body1">Hello world. Put chips to the right?</MudText>
+                    </div>
+                </TitleContent>
+                <ChildContent>
+                    This would be something like the condition
+                </ChildContent>
+            </MudExpansionPanel>
+        }
+    </MudExpansionPanels>
+</MudContainer>
+
+@code {
+    [Parameter] public required TalentData Talent { get; set; }
+    [Parameter] public bool UseChest { get; set; } = false;
+    [Parameter] public bool UseBackpack { get; set; } = false;
+
+    private string GetIconForValueType(TalentValueData talentValue)
+    {
+        return talentValue.Type switch
+        {
+            TalentValueType.Flat => Icons.Material.Filled.DoubleArrow,
+            TalentValueType.Stacking => Icons.Material.Filled.StackedLineChart,
+            TalentValueType.MultiTarget => Icons.Material.Filled.People,
+            _ => Icons.Material.Filled.Error
+        };
+    }
+
+    private Color GetIconColorForValueType(TalentValueData talentValue)
+    {
+        return talentValue.TargetStat switch
+        {
+            Stat.TargetCount => Color.Info,
+            Stat.ReloadSpeed => Color.Info,
+            Stat.RPM => Color.Info,
+            _ => Color.Error
+        };
+    }
+}
