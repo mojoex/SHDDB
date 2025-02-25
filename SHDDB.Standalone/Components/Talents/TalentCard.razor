@@ -2,7 +2,7 @@
     <div class="cursor-pointer" @onclick="OnExpandCollapseClick">
         @if (Talent.Type == TalentType.Perfect)
         {
-            <MudBadge Origin="Origin.CenterRight" Bordered Icon="@Icons.Material.Filled.KeyboardDoubleArrowUp" BadgeClass="ml-2">
+            <MudBadge Origin="Origin.CenterRight" Icon="@Icons.Material.Filled.KeyboardDoubleArrowUp" BadgeClass="ml-2">
                 <MudText Typo="Typo.h5" Color="Color.Primary">@Talent.Name</MudText>
             </MudBadge>
         }
@@ -11,39 +11,35 @@
             <MudText Typo="Typo.h5" Color="Color.Primary">@Talent.Name</MudText>
         }
     </div>
-    <div class="d-flex justify-space-between px-4 mx-auto">
-        <MudText Typo="Typo.subtitle2">@TalentContent.GetTalentSummary(Talent.Values)</MudText>
+    <div class="d-flex justify-space-between align-center px-5 py-2">
+        <div class="d-inline-flex gap-1">
+            @foreach (var talentValue in Talent.Values)
+            {
+                <MudChip T="string" Size="Size.Small" Class="@GetBorderForValueChip(talentValue)" Variant="@GetValueChipVariant(talentValue)" Icon="@GetValueIcon(talentValue)" Color="@GetValueColor(talentValue)">@GetValueText(talentValue)</MudChip>
+            }
+        </div>
+        @* <MudText Typo="Typo.subtitle2">@TalentContent.GetTalentSummary(Talent.Values)</MudText> *@
         @if (Talent.HasModifiers)
         {
-            <div class="d-inline-flex justify-center align-content-center gap-2 py-2">
+            <div class="d-inline-flex">
                 @if (Talent.HasChestModifier)
                 {
-                    <div class="d-flex flex-column align-center">
-                        <MudToggleIconButton @bind-Toggled="_useChest" Icon="@Icons.Material.Filled.Shield" ToggledColor="Color.Success" Disabled="!_expandedDetails"/>
-                        @* <MudImage Height="20" Width="20" Src="images/chest.png" />
-                        @if (_expandedDetails)
-                        {
-                            <MudSwitch @bind-Value="_useChest" Color="Color.Success" />
-                        } *@
-                    </div>
+                    <MudTooltip Text="@(_expandedDetails ? "Toggle Chest" : "Has Chest")" Arrow Placement="Placement.Bottom">
+                        <MudToggleIconButton @bind-Toggled="_useChest" DropShadow Size="@(_expandedDetails ? Size.Medium : Size.Small)" Icon="@Icons.Material.Filled.Shield" ToggledColor="Color.Success" Disabled="!_expandedDetails" />
+                    </MudTooltip>
                 }
 
                 @if (Talent.HasBackpackModifier)
                 {
-                    <div class="d-flex flex-column align-center">
-                        <MudToggleIconButton @bind-Toggled="_useBackpack" Icon="@Icons.Material.Filled.Backpack" ToggledColor="Color.Success" Disabled="!_expandedDetails" />
-                        @* <MudImage Height="20" Width="20" Src="images/chest.png" />
-                        @if (_expandedDetails)
-                        {
-                            <MudSwitch @bind-Value="_useChest" Color="Color.Success" />
-                        } *@
-                    </div>
+                    <MudTooltip Text="@(_expandedDetails ? "Toggle Backpack" : "Has Backpack")" Arrow Placement="Placement.Bottom">
+                        <MudToggleIconButton @bind-Toggled="_useBackpack" DropShadow Size="@(_expandedDetails ? Size.Medium : Size.Small)" Icon="@Icons.Material.Filled.Backpack" ToggledColor="Color.Success" Disabled="!_expandedDetails" />
+                    </MudTooltip>
                 }
             </div>
         }
     </div>
     <MudCollapse Expanded="_expandedDetails">
-        <MudDivider DividerType="DividerType.Middle" />
+        <MudDivider Class="pb-2" DividerType="DividerType.Middle" />
         <TalentValues Talent="Talent" UseBackpack="_useBackpack" UseChest="_useChest" />
     </MudCollapse>
 </MudPaper>
@@ -60,5 +56,65 @@
     private void OnExpandCollapseClick()
     {
         _expandedDetails = !_expandedDetails;
+    }
+
+    private string? GetValueIcon(TalentValueData talentValue)
+    {
+        if (talentValue.Type == TalentValueType.Stacking && !talentValue.TargetStat.IsUtility())
+        {
+            return Icons.Material.Filled.StackedLineChart;
+        }
+
+        return talentValue.TargetStat switch
+        {
+            Stat.TargetCount => Icons.Material.Filled.People,
+            Stat.RPM => Icons.Material.Filled.Speed,
+            Stat.ReloadSpeed => Icons.Material.Filled.Refresh,
+            Stat.AMP => @Icons.Material.Filled.KeyboardDoubleArrowRight,
+            _ => Icons.Material.Filled.KeyboardArrowRight
+        };
+    }
+
+    private Color? GetValueColor(TalentValueData talentValue)
+    {
+        return talentValue.TargetStat switch
+        {
+            Stat.TargetCount => Color.Info,
+            Stat.RPM => Color.Info,
+            Stat.ReloadSpeed => Color.Info,
+            _ => Color.Error
+        };
+    }
+
+    private Variant GetValueChipVariant(TalentValueData talentValue)
+    {
+        if (talentValue.IsConditional)
+        {
+            return Variant.Outlined;
+        }
+
+        return Variant.Filled;
+    }
+
+    private string GetBorderForValueChip(TalentValueData talentValue)
+    {
+        if (talentValue.IsConditional)
+        {
+            return "border-dashed";
+        }
+
+        return string.Empty;
+    }
+
+    private string GetValueText(TalentValueData talentValue)
+    {
+        if (talentValue.Type == TalentValueType.MultiTarget)
+        {
+            return talentValue.TargetStat.GetString();
+        }
+        else
+        {
+            return $"{(talentValue.IsConditional ? "Conditional " : string.Empty)}{talentValue.Type} {talentValue.TargetStat.GetString()}";
+        }
     }
 }

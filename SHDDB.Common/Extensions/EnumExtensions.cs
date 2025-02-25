@@ -23,5 +23,16 @@ namespace SHDDB.Common.Extensions
                 _ => stat.ToString()
             };
         }
+
+        public static bool IsUtility(this Stat stat)
+        {
+            return stat switch
+            {
+                Stat.ReloadSpeed => true,
+                Stat.TargetCount => true,
+                Stat.RPM => true,
+                _ => false
+            };
+        }
     }
 }

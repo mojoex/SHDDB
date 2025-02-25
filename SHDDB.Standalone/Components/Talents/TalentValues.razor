@@ -1,12 +1,22 @@
-﻿<MudContainer Class="mx-auto">
+﻿<div>
     <MudExpansionPanels Gutters MultiExpansion Outlined="false">
         @foreach (var talentValue in Talent.Values)
         {
             <MudExpansionPanel Expanded>
                 <TitleContent>
-                    <div class="d-flex">
-                        <MudIcon Icon="@GetIconForValueType(talentValue)" Color="@GetIconColorForValueType(talentValue)"></MudIcon>
-                        <MudText Typo="Typo.body1">Hello world. Put chips to the right?</MudText>
+                    <div class="d-inline-flex">
+                        <MudIcon Icon="@GetIconForValueType(talentValue)" Color="@GetIconColorForValueType(talentValue)"/>
+                        <MudText Typo="Typo.body1">@(GetPrefixForValue(talentValue))</MudText>
+                        <MudText Typo="Typo.body1" Style="@(GetStyleForValue(talentValue))">@(GetValue(talentValue))% </MudText>
+                        <MudText Typo="Typo.body1">@(GetSuffixForValue(talentValue))</MudText>
+                        @if (talentValue.Type == TalentValueType.MultiTarget)
+                        {
+                            <MudText Typo="Typo.body1" Style="@(GetStyleForValue(talentValue, TalentValueType.MultiTarget))">@(GetTargetCountValue(talentValue))</MudText>
+                        }
+                        @if (talentValue.Type == TalentValueType.Stacking)
+                        {
+                            <MudText Typo="Typo.body1" Style="@(GetStyleForValue(talentValue, TalentValueType.Stacking))">@(GetStackValue(talentValue))</MudText>
+                        }
                     </div>
                 </TitleContent>
                 <ChildContent>
@@ -15,7 +25,7 @@
             </MudExpansionPanel>
         }
     </MudExpansionPanels>
-</MudContainer>
+</div>
 
 @code {
     [Parameter] public required TalentData Talent { get; set; }
@@ -24,13 +34,146 @@
 
     private string GetIconForValueType(TalentValueData talentValue)
     {
+        if (talentValue.TargetStat == Stat.AMP && talentValue.Type == TalentValueType.Flat)
+        {
+            return Icons.Material.Filled.KeyboardDoubleArrowRight;
+        }
+
         return talentValue.Type switch
         {
-            TalentValueType.Flat => Icons.Material.Filled.DoubleArrow,
+            TalentValueType.Flat => Icons.Material.Filled.KeyboardArrowRight,
             TalentValueType.Stacking => Icons.Material.Filled.StackedLineChart,
             TalentValueType.MultiTarget => Icons.Material.Filled.People,
             _ => Icons.Material.Filled.Error
         };
+    }
+
+    private string GetTargetCountValue(TalentValueData talentValue)
+    {
+        var (@base, chest, backpack) = talentValue.GetTargets();
+
+        if (UseChest && chest.HasValue)
+        {
+            return chest.Value.ToString();
+        }
+
+        if (UseBackpack && backpack.HasValue)
+        {
+            return backpack.Value.ToString();
+        }
+
+        return @base.ToString();
+    }
+
+    private string GetStackValue(TalentValueData talentValue)
+    {
+        var (@base, chest, backpack) = talentValue.GetStacks();
+
+        if (UseChest && chest.HasValue)
+        {
+            return chest.Value.ToString();
+        }
+
+        if (UseBackpack && backpack.HasValue)
+        {
+            return backpack.Value.ToString();
+        }
+
+        return @base.ToString();
+    }
+
+    private string GetStyleForValue(TalentValueData talentValue, TalentValueType? valueType = null)
+    {
+        var (@base, chest, backpack) = talentValue.GetValue();
+
+        if (valueType.HasValue && valueType.Value == TalentValueType.MultiTarget)
+        {
+            (@base, chest, backpack) = talentValue.GetTargets();
+        }
+
+        if (valueType.HasValue && valueType.Value == TalentValueType.Stacking)
+        {
+            (@base, chest, backpack) = talentValue.GetStacks();
+        }
+
+        if (UseChest && chest.HasValue)
+        {
+            return $"color: rgba(11,186,131,1)";
+        }
+
+        if (UseBackpack && backpack.HasValue)
+        {
+            return $"color: rgba(11,186,131,1)";
+        }
+
+        return string.Empty;
+    }
+
+    private string GetValue(TalentValueData talentValue)
+    {
+        var (@base, chest, backpack) = talentValue.GetValue();
+
+        if (UseChest && chest.HasValue)
+        {
+            return chest.Value.AsString();
+        }
+
+        if (UseBackpack && backpack.HasValue)
+        {
+            return backpack.Value.AsString();
+        }
+
+        return @base.AsString();
+    }
+
+    private string GetPrefixForValue(TalentValueData talentValue)
+    {
+        if (talentValue.TargetStat == Stat.AMP)
+        {
+            return "Amplify by ";
+        }
+
+        if (talentValue.TargetStat == Stat.ReloadSpeed)
+        {
+            return "-";
+        }
+
+        if (talentValue.Type == TalentValueType.MultiTarget)
+        {
+            return "Transfer ";
+        }
+
+        return "+";
+    }
+
+    private string GetSuffixForValue(TalentValueData talentValue)
+    {
+        if (talentValue.Type == TalentValueType.MultiTarget)
+        {
+            return "damage dealt to up to ";
+        }
+
+        if (talentValue.Type == TalentValueType.Stacking)
+        {
+            if (talentValue.TargetStat == Stat.ReloadSpeed)
+            {
+                return "reload speed per stack, to a max of ";
+            }
+
+            if (talentValue.TargetStat == Stat.RPM)
+            {
+                return "fire rate per stack, to a max of ";
+            }
+
+            return "per stack, to a max of ";
+        }
+
+        if (talentValue.TargetStat == Stat.AMP)
+        {
+            return string.Empty;
+        }
+
+        return $"added {talentValue.TargetStat.GetString()}";
     }
 
     private Color GetIconColorForValueType(TalentValueData talentValue)
