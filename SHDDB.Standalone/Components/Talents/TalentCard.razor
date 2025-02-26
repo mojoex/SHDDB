@@ -1,46 +1,43 @@
-﻿<MudPaper MinWidth="375px" Square="false" Elevation="3" Class="talent-page flex-grow-1 rounded-xl pa-2" Style="text-align: center">
-    <div class="cursor-pointer" @onclick="OnExpandCollapseClick">
-        @if (Talent.Type == TalentType.Perfect)
-        {
-            <MudBadge Origin="Origin.CenterRight" Icon="@Icons.Material.Filled.KeyboardDoubleArrowUp" BadgeClass="ml-2">
-                <MudText Typo="Typo.h5" Color="Color.Primary">@Talent.Name</MudText>
-            </MudBadge>
-        }
-        else
-        {
-            <MudText Typo="Typo.h5" Color="Color.Primary">@Talent.Name</MudText>
-        }
-    </div>
-    <div class="d-flex justify-space-between align-center px-5 py-2">
-        <div class="d-inline-flex gap-1">
-            @foreach (var talentValue in Talent.Values)
-            {
-                <MudChip T="string" Size="Size.Small" Class="@GetBorderForValueChip(talentValue)" Variant="@GetValueChipVariant(talentValue)" Icon="@GetValueIcon(talentValue)" Color="@GetValueColor(talentValue)">@GetValueText(talentValue)</MudChip>
-            }
-        </div>
-        @if (Talent.HasModifiers)
-        {
-            <div class="d-inline-flex">
-                @if (Talent.HasChestModifier)
-                {
-                    <MudTooltip Text="@(_expandedDetails ? "Toggle Chest" : "Has Chest")" Arrow Placement="Placement.Bottom">
-                        <MudToggleIconButton @bind-Toggled="_useChest" DropShadow Size="@(_expandedDetails ? Size.Medium : Size.Small)" Icon="@Icons.Material.Filled.Shield" ToggledColor="Color.Success" Disabled="!_expandedDetails" />
-                    </MudTooltip>
-                }
-
-                @if (Talent.HasBackpackModifier)
-                {
-                    <MudTooltip Text="@(_expandedDetails ? "Toggle Backpack" : "Has Backpack")" Arrow Placement="Placement.Bottom">
-                        <MudToggleIconButton @bind-Toggled="_useBackpack" DropShadow Size="@(_expandedDetails ? Size.Medium : Size.Small)" Icon="@Icons.Material.Filled.Backpack" ToggledColor="Color.Success" Disabled="!_expandedDetails" />
-                    </MudTooltip>
-                }
+﻿<MudPaper MinWidth="375px" MaxWidth="375px" MinHeight="145px" Elevation="3" Class="talent-page flex-grow-1 rounded-xl pa-2" Style="text-align: center">
+    <MudStack>
+        <MudStack AlignItems="AlignItems.Center">
+            <div class="cursor-pointer" @onclick="OnExpandCollapseClick">
+                <MudText Typo="Typo.h5">@Talent.Name</MudText>
             </div>
-        }
-    </div>
-    <MudCollapse Expanded="_expandedDetails">
-        <MudDivider Class="pb-2" DividerType="DividerType.Middle" />
-        <TalentValues Talent="Talent" UseBackpack="_useBackpack" UseChest="_useChest" />
-    </MudCollapse>
+            <MudStack Row Wrap="Wrap.Wrap" Justify="Justify.Center">
+                @if (Talent.Type == TalentType.Perfect)
+                {
+                    <MudChip T="string" Icon="@Icons.Material.Filled.KeyboardDoubleArrowUp" Size="Size.Small" Style="@($"color: {Colors.Amber.Lighten1}; border: 1px solid {Colors.Amber.Lighten1}")">Perfect</MudChip>
+                }
+                @foreach (var talentValue in Talent.Values)
+                {
+                    <MudChip T="string" Size="Size.Small" Class="@GetBorderForValueChip(talentValue)" Variant="@GetValueChipVariant(talentValue)" Icon="@GetValueIcon(talentValue)" Color="@GetValueColor(talentValue)">@GetValueText(talentValue)</MudChip>
+                }
+            </MudStack>
+            @if (Talent.HasModifiers)
+            {
+                <MudStack Row Justify="Justify.Center">
+                    @if (Talent.HasChestModifier)
+                    {
+                        <MudTooltip Text="@(_expandedDetails ? "Toggle Chest" : "Has Chest")" Arrow Placement="Placement.Bottom">
+                            <MudToggleIconButton @bind-Toggled="_useChest" DropShadow Size="@(_expandedDetails ? Size.Medium : Size.Small)" Icon="@Icons.Material.Filled.Shield" ToggledColor="Color.Success" Disabled="!_expandedDetails" />
+                        </MudTooltip>
+                    }
+
+                    @if (Talent.HasBackpackModifier)
+                    {
+                        <MudTooltip Text="@(_expandedDetails ? "Toggle Backpack" : "Has Backpack")" Arrow Placement="Placement.Bottom">
+                            <MudToggleIconButton @bind-Toggled="_useBackpack" DropShadow Size="@(_expandedDetails ? Size.Medium : Size.Small)" Icon="@Icons.Material.Filled.Backpack" ToggledColor="Color.Success" Disabled="!_expandedDetails" />
+                        </MudTooltip>
+                    }
+                </MudStack>
+            }
+        </MudStack>
+        <MudCollapse Expanded="_expandedDetails">
+            <MudDivider Class="pa-2" DividerType="DividerType.Middle" />
+            <TalentValues Talent="Talent" UseBackpack="_useBackpack" UseChest="_useChest" />
+        </MudCollapse>
+    </MudStack>
 </MudPaper>
 
 @code {

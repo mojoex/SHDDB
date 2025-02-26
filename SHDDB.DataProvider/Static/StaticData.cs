@@ -401,7 +401,7 @@ namespace SHDDB.DataProvider.Static
                 Name = "Overwhelm",
                 Values = [new(new(0.1), Stat.WD, condition: "For LMG: After suppressing an enemy")],
                 Slot = Slot.Weapon,
-                Type = TalentType.Perfect,
+                Type = TalentType.HighEnd,
                 PerfectVariant = "Perfect Overwhelm"
             },
 
@@ -409,6 +409,7 @@ namespace SHDDB.DataProvider.Static
                 Name = "Perfect Overwhelm",
                 Values = [new(new(0.12), Stat.WD, condition: "For LMG: After suppressing an enemy")],
                 Slot = Slot.Weapon,
+                Type = TalentType.Perfect,
                 BaseVariant = "Overwhelm"
             },
 
@@ -416,7 +417,6 @@ namespace SHDDB.DataProvider.Static
                 Name = "Pummel",
                 Values = [new(new(0.4), Stat.WD, condition: "For Shotguns: After 3 consecutive kills")],
                 Slot = Slot.Weapon,
-                Type = TalentType.Perfect,
                 PerfectVariant = "Perfect Pummel"
             },
 
@@ -424,6 +424,7 @@ namespace SHDDB.DataProvider.Static
                 Name = "Perfect Pummel",
                 Values = [new(new(0.4), Stat.WD, condition: "For Shotguns: After 2 consecutive kills")],
                 Slot = Slot.Weapon,
+                Type = TalentType.Perfect,
                 BaseVariant = "Pummel"
             },
 
