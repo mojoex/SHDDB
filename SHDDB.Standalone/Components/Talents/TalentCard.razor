@@ -18,7 +18,6 @@
                 <MudChip T="string" Size="Size.Small" Class="@GetBorderForValueChip(talentValue)" Variant="@GetValueChipVariant(talentValue)" Icon="@GetValueIcon(talentValue)" Color="@GetValueColor(talentValue)">@GetValueText(talentValue)</MudChip>
             }
         </div>
-        @* <MudText Typo="Typo.subtitle2">@TalentContent.GetTalentSummary(Talent.Values)</MudText> *@
         @if (Talent.HasModifiers)
         {
             <div class="d-inline-flex">
