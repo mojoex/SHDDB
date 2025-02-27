@@ -14,7 +14,7 @@ namespace SHDDB.Common.Extensions
             };
         }
 
-        public static string GetString(this Stat stat)
+        public static string AsString(this Stat stat)
         {
             return stat switch
             {

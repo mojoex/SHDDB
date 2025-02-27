@@ -2,14 +2,14 @@
 {
     public static class DoubleExtensions
     {
-        public static string AsString(this double value, bool round = true)
+        public static string AsString(this double value, string suffix = "", bool round = true)
         {
             if (round)
             {
-                return Math.Round(value * 100, 2).ToString();
+                return $"{Math.Round(value * 100, 2)}{suffix}";
             }
 
-            return (value * 100).ToString();
+            return $"{value * 100}{suffix}";
         }
     }
 }

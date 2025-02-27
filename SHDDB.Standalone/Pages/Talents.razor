@@ -5,7 +5,7 @@
 
 @* Filtering Paper *@
 <MudPaper MinWidth="100%" Elevation="25" Class="pa-4 mt-4">
-    <MudStack Row StretchItems="StretchItems.End">
+    <MudStack Row StretchItems="StretchItems.End" Spacing="2">
         @* Page View Style *@
         <MudMenu Icon="@Icons.Material.Filled.FilterList" Class="ml-2" Variant="Variant.Filled" Dense>
             <MudMenuItem Icon="@Icons.Material.Filled.List" @onclick="() => _listView = true" />
@@ -40,7 +40,11 @@
             </MudMenuItem>
         </MudMenu>
 
-        <MudDivider Vertical="true" FlexItem="true" Class="mx-4" />
+        <MudDivider Vertical="true" FlexItem />
+
+        <MudButton OnClick=ToggleExpandAll Size=Size.Small Variant="Variant.Filled">@(_allExpanded ? "Collapse All" : "Expand All")</MudButton>
+
+        <MudDivider Vertical="true" FlexItem />
 
         @* Search Field *@
         <MudTextField T="string" Value="@_searchText" Label="Search.. " Variant="Variant.Filled" ValueChanged=TextFilter Immediate />
@@ -62,12 +66,12 @@
 }
 else
 {
-    <div class="d-flex flex-wrap flex-grow-1 gap-4 align-start">
+    <MudStack AlignItems="AlignItems.Start" Justify="Justify.Center" Row Wrap="Wrap.Wrap">
         @foreach (var talent in CurrentTalents)
         {
-            <TalentCard Talent="@talent" />
+            <TalentCard Talent="@talent" ExpandedDetails="_allExpanded" />
         }
-    </div>
+    </MudStack>
 }
 
 
@@ -82,6 +86,8 @@ else
     private bool _filtersOpen = false;
     private bool _temp = false;
     private string _searchText { get; set; } = string.Empty;
+
+    private bool _allExpanded { get; set; } = false;
 
     protected override void OnInitialized()
     {
@@ -101,6 +107,11 @@ else
                 [Slot.Chest] = false,
                 [Slot.Weapon] = false
             };
+    }
+
+    private void ToggleExpandAll()
+    {
+        _allExpanded = !_allExpanded;
     }
 
     private void ToggleFilters()

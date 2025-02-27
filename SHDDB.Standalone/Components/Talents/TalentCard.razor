@@ -2,7 +2,15 @@
     <MudStack>
         <MudStack AlignItems="AlignItems.Center">
             <div class="cursor-pointer" @onclick="OnExpandCollapseClick">
-                <MudText Typo="Typo.h5">@Talent.Name</MudText>
+                <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Center">
+                    <MudText Typo="Typo.h5">@Talent.Name</MudText>
+                    @if (Talent.Values.Any(x => !x.Complete))
+                    {
+                        <MudTooltip Text="Talent is incomplete" ShowOnHover Placement=Placement.Bottom Delay="500">
+                            <MudIcon Icon=@Icons.Material.Filled.Error Color=Color.Error Size=Size.Small />
+                        </MudTooltip>
+                    }
+                </MudStack>
             </div>
             <MudStack Row Wrap="Wrap.Wrap" Justify="Justify.Center">
                 @if (Talent.Type == TalentType.Perfect)
@@ -16,26 +24,30 @@
             </MudStack>
             @if (Talent.HasModifiers)
             {
-                <MudStack Row Justify="Justify.Center">
-                    @if (Talent.HasChestModifier)
-                    {
-                        <MudTooltip Text="@(_expandedDetails ? "Toggle Chest" : "Has Chest")" Arrow Placement="Placement.Bottom">
-                            <MudToggleIconButton @bind-Toggled="_useChest" DropShadow Size="@(_expandedDetails ? Size.Medium : Size.Small)" Icon="@Icons.Material.Filled.Shield" ToggledColor="Color.Success" Disabled="!_expandedDetails" />
-                        </MudTooltip>
-                    }
+                <MudPaper Elevation="2">
+                    <MudStack Row Justify="Justify.Center">
+                        @if (Talent.HasChestModifier)
+                        {
+                            <MudTooltip Text="@(ExpandedDetails ? "Toggle Chest" : "Has Chest")" Arrow Placement="Placement.Bottom">
+                                <MudToggleIconButton @bind-Toggled="_useChest" DropShadow Size="@(ExpandedDetails ? Size.Medium : Size.Small)" Icon="@Icons.Material.Filled.Shield" ToggledColor="Color.Success" Disabled="!ExpandedDetails" />
+                            </MudTooltip>
+                        }
 
-                    @if (Talent.HasBackpackModifier)
-                    {
-                        <MudTooltip Text="@(_expandedDetails ? "Toggle Backpack" : "Has Backpack")" Arrow Placement="Placement.Bottom">
-                            <MudToggleIconButton @bind-Toggled="_useBackpack" DropShadow Size="@(_expandedDetails ? Size.Medium : Size.Small)" Icon="@Icons.Material.Filled.Backpack" ToggledColor="Color.Success" Disabled="!_expandedDetails" />
-                        </MudTooltip>
-                    }
-                </MudStack>
+                        @if (Talent.HasBackpackModifier)
+                        {
+                            <MudTooltip Text="@(ExpandedDetails ? "Toggle Backpack" : "Has Backpack")" Arrow Placement="Placement.Bottom">
+                                <MudToggleIconButton @bind-Toggled="_useBackpack" DropShadow Size="@(ExpandedDetails ? Size.Medium : Size.Small)" Icon="@Icons.Material.Filled.Backpack" ToggledColor="Color.Success" Disabled="!ExpandedDetails" />
+                            </MudTooltip>
+                        }
+                    </MudStack>
+                </MudPaper>
             }
         </MudStack>
-        <MudCollapse Expanded="_expandedDetails">
-            <MudDivider Class="pa-2" DividerType="DividerType.Middle" />
-            <TalentValues Talent="Talent" UseBackpack="_useBackpack" UseChest="_useChest" />
+        <MudCollapse Expanded="ExpandedDetails">
+            <MudStack>
+                <MudDivider DividerType="DividerType.Middle" />
+                <TalentValues Talent="Talent" UseBackpack="_useBackpack" UseChest="_useChest" />
+            </MudStack>
         </MudCollapse>
     </MudStack>
 </MudPaper>
@@ -44,19 +56,19 @@
     [Parameter] public required TalentData Talent { get; set; }
     [Parameter] public bool Minimal { get; set; } = false;
 
-    private bool _expandedDetails { get; set; } = false;
+    [Parameter] public bool ExpandedDetails { get; set; } = false;
 
     private bool _useBackpack { get; set; } = false;
     private bool _useChest { get; set; } = false;
 
     private void OnExpandCollapseClick()
     {
-        _expandedDetails = !_expandedDetails;
+        ExpandedDetails = !ExpandedDetails;
     }
 
     private string? GetValueIcon(TalentValueData talentValue)
     {
-        if (talentValue.Type == TalentValueType.Stacking && !talentValue.TargetStat.IsUtility())
+        if (talentValue.ApplicationType == TalentValueType.Stacking && !talentValue.TargetStat.IsUtility())
         {
             return Icons.Material.Filled.StackedLineChart;
         }
@@ -104,13 +116,13 @@
 
     private string GetValueText(TalentValueData talentValue)
     {
-        if (talentValue.Type == TalentValueType.MultiTarget)
+        if (talentValue.ApplicationType == TalentValueType.MultiTarget)
         {
-            return talentValue.TargetStat.GetString();
+            return talentValue.TargetStat.AsString();
         }
         else
         {
-            return $"{(talentValue.IsConditional ? "Conditional " : string.Empty)}{talentValue.Type} {talentValue.TargetStat.GetString()}";
+            return $"{(talentValue.IsConditional ? "Conditional " : string.Empty)}{talentValue.ApplicationType} {talentValue.TargetStat.AsString()}";
         }
     }
 }

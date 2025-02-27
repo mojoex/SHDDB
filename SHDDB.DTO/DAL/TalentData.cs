@@ -129,7 +129,7 @@ namespace SHDDB.DTO.DAL
         /// The type of this value
         /// </summary>
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public TalentValueType Type => StackingMultiplier != null ? TalentValueType.Stacking : TargetMultiplier != null ? TalentValueType.MultiTarget : TalentValueType.Flat;
+        public TalentValueType ApplicationType => StackingMultiplier != null ? TalentValueType.Stacking : TargetMultiplier != null ? TalentValueType.MultiTarget : TalentValueType.Flat;
 
         /// <summary>
         /// Indicates whether this value is applied conditionally
@@ -183,7 +183,7 @@ namespace SHDDB.DTO.DAL
         /// <returns></returns>
         public (double @base, double? chestOverride, double? backpackOverride) GetStacks()
         {
-            if (Type != TalentValueType.Stacking)
+            if (ApplicationType != TalentValueType.Stacking)
             {
                 return default;
             }
@@ -197,7 +197,7 @@ namespace SHDDB.DTO.DAL
         /// <returns></returns>
         public (double @base, double? chestOverride, double? backpackOverride) GetTargets()
         {
-            if (Type != TalentValueType.MultiTarget)
+            if (ApplicationType != TalentValueType.MultiTarget)
             {
                 return default;
             }

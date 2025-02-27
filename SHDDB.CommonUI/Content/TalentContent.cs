@@ -1,5 +1,4 @@
-﻿using SHDDB.Common.Constants;
-using SHDDB.Common.Extensions;
+﻿using SHDDB.Common.Extensions;
 using SHDDB.DTO.DAL;
 using SHDDB.DTO.Enums;
 using System.Text;
@@ -8,98 +7,117 @@ namespace SHDDB.CommonUI.Content
 {
     public static class TalentContent
     {
-        public static string GetTalentSummary(List<TalentValueData> talentValues)
+        public static string GetValueDescription(TalentValueData value, bool useChest, bool useBackpack)
         {
-            List<string> valueSummary = [];
-            foreach (var value in talentValues)
+            return value.ApplicationType switch
             {
-                if (value.Type == TalentValueType.MultiTarget)
-                {
-                    valueSummary.Add(value.TargetStat.GetString());
-                }
-                else
-                {
-                    valueSummary.Add($"{(value.IsConditional ? "Conditional " : string.Empty)}{value.Type} {value.TargetStat.GetString()}");
-                }
-            }
-
-            return string.Join(" + ", valueSummary);
+                TalentValueType.Stacking => StackingDescription(value, useChest, useBackpack),
+                TalentValueType.MultiTarget => MultiTargetDescription(value, useChest, useBackpack),
+                _ => FlatDescription(value, useChest, useBackpack)
+            };
         }
 
-        public static string GetValueForBody(TalentValueData value, bool chestModifierEnable = false, bool backpackModifierEnabled = false)
+        private static string StackingDescription(TalentValueData value, bool useChest, bool useBackpack)
         {
-            if (value.TargetStat == Stat.ReloadSpeed)
+            StringBuilder sb = new();
+
+            var (baseValue, chestValue, backpackValue) = value.GetValue();
+            var (stackingBaseValue, stackingChestValue, stackingBackpackValue) = value.GetStacks();
+
+            if (useChest && chestValue.HasValue)
             {
-                return $"{Emojis.Reload} -{GetStringValue(value)}% reload speed{GetFlatOrStackingString(value)}";
+                sb.Append($"<span style=\"color: #01ff90\">{chestValue.Value.AsString("%")}</span> {value.TargetStat.AsString()} per stack, to a max of ");
+            }
+            else if (useBackpack && backpackValue.HasValue)
+            {
+                sb.Append($"<span style=\"color: #01ff90\">{backpackValue.Value.AsString("%")}</span> {value.TargetStat.AsString()} per stack, to a max of ");
+            }
+            else
+            {
+                sb.Append($"{baseValue.AsString("%")} {value.TargetStat.AsString()} per stack, to a max of ");
             }
 
-            if (value.TargetStat == Stat.TargetCount)
+            if (useChest && stackingChestValue.HasValue)
             {
-                return $"{Emojis.MultiTarget} Transfer {GetStringValue(value)}% damage dealt to up to {GetMultiTargetStringValue(value)} marked targets ";
+                sb.Append($"<span style=\"color: #01ff90\">{stackingChestValue.Value}</span> stacks");
+            }
+            else if (useBackpack && stackingBackpackValue.HasValue)
+            {
+                sb.Append($"<span style=\"color: #01ff90\">{stackingBackpackValue.Value}</span> stacks");
+            }
+            else
+            {
+                sb.Append($"{stackingBaseValue} stacks");
             }
 
-            if (value.TargetStat == Stat.AMP)
-            {
-                return $"{Emojis.Damage} Amplify by {GetStringValue(value)}%{GetFlatOrStackingString(value)}";
-            }
-
-            return $"{Emojis.Damage} +{GetStringValue(value)}% added {value.TargetStat}{GetFlatOrStackingString(value)}";
+            return sb.ToString();
         }
 
-        private static string GetStringValue(TalentValueData value, bool chestModifierEnabled = false, bool backpackModifierEnabled = false)
+        private static string MultiTargetDescription(TalentValueData value, bool useChest, bool useBackpack)
         {
+            StringBuilder sb = new();
+
+            sb.Append("Transfer ");
+
             var (baseValue, chestValue, backpackValue) = value.GetValue();
 
-            if (chestModifierEnabled && chestValue.HasValue)
+            if (useChest && chestValue.HasValue)
             {
-                return $"<span style=\"color:#02ee68;\">{Math.Round(chestValue.Value * 100, 2)}</span>";
+                sb.Append($"<span style=\"color: #01ff90\">{chestValue.Value.AsString("%")}</span>");
+            }
+            else if (useBackpack && backpackValue.HasValue)
+            {
+                sb.Append($"<span style=\"color: #01ff90\">{backpackValue.Value.AsString("%")}</span>");
+            }
+            else
+            {
+                sb.Append($"{baseValue.AsString("%")}");
             }
 
-            if (backpackModifierEnabled && backpackValue.HasValue)
+            sb.Append(" damage dealt to up to ");
+
+            var (targetBaseValue, targetChestValue, targetBackpackValue) = value.GetTargets();
+
+            if (useChest && targetChestValue.HasValue)
             {
-                return $"<span style=\"color:#02ee68;\">{Math.Round(backpackValue.Value * 100, 2)}</span>";
+                sb.Append($"<span style=\"color: #01ff90\">{targetChestValue.Value}</span>");
+            }
+            else if (useBackpack && targetBackpackValue.HasValue)
+            {
+                sb.Append($"<span style=\"color: #01ff90\">{targetBackpackValue.Value}</span>");
+            }
+            else
+            {
+                sb.Append($"{targetBaseValue}");
             }
 
-            return Math.Round(baseValue * 100, 2).ToString();
+            sb.Append(" marked targets");
+
+            return sb.ToString();
         }
 
-        private static string GetMultiTargetStringValue(TalentValueData value, bool chestModifierEnabled = false, bool backpackModifierEnabled = false)
+        private static string FlatDescription(TalentValueData value, bool useChest, bool useBackpack)
         {
-            var (baseValue, chestValue, backpackValue) = value.GetTargets();
+            StringBuilder sb = new();
 
-            if (chestModifierEnabled && chestValue.HasValue)
+            var (baseValue, chestValue, backpackValue) = value.GetValue();
+
+            if (useChest && chestValue.HasValue)
             {
-                return $"<span class=\"overridden-value\">{chestValue.Value}</span>";
+                sb.Append($"<span style=\"color: #01ff90\">{chestValue.Value.AsString("%")}</span> {value.TargetStat.AsString()}");
+
+                return sb.ToString();
             }
 
-            if (backpackModifierEnabled && backpackValue.HasValue)
+            if (useBackpack && backpackValue.HasValue)
             {
-                return $"<span class=\"overridden-value\">{backpackValue.Value}</span>";
+                sb.Append($"<span style=\"color: #01ff90\">{backpackValue.Value.AsString("%")}</span> {value.TargetStat.AsString()}");
+                return sb.ToString();
             }
 
-            return baseValue.ToString();
-        }
+            sb.Append($"{baseValue.AsString("%")} {value.TargetStat.AsString()}");
 
-        private static string GetFlatOrStackingString(TalentValueData value, bool chestModifierEnabled = false, bool backpackModifierEnabled = false)
-        {
-            if (value.Type != TalentValueType.Stacking)
-            {
-                return string.Empty;
-            }
-
-            var (baseValue, chestValue, backpackValue) = value.GetStacks();
-
-            if (chestModifierEnabled && chestValue.HasValue)
-            {
-                return $" per stack, to a max of <span class=\"overridden-value\">{chestValue.Value}</span> stacks";
-            }
-
-            if (backpackModifierEnabled && backpackValue.HasValue)
-            {
-                return $" per stack, to a max of <span class=\"overridden-value\">{backpackValue.Value}</span> stacks";
-            }
-
-            return baseValue == -1 ? " per stack, stacking infinitely" : $" per stack, to a max of {baseValue} stacks";
+            return sb.ToString();
         }
     }
 }

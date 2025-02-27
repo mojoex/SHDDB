@@ -1,24 +1,25 @@
-﻿<div>
-    <MudStack Class="pa-4" AlignItems="AlignItems.Center" >
-        @foreach (var talentValue in Talent.Values)
-        {
-            <MudPaper Width="100%" Elevation="0" Outlined>
-                <MudStack Row Class="pa-2">
-                    <MudIcon Icon="@GetIconForValueType(talentValue)" Color="@GetIconColorForValueType(talentValue)" />
-                    <TalentValueDescription TalentValue="talentValue" ChestOverride="UseChest" BackpackOverride="UseBackpack" />
-                </MudStack>
-                @if (talentValue.IsConditional)
-                {
-                    <MudAlert Icon="@Icons.Material.Filled.Directions">@talentValue.Condition</MudAlert>
-                }
-                @if (!string.IsNullOrEmpty(talentValue.Note))
-                {
-                    <MudAlert Icon="@Icons.Material.Filled.Info">@talentValue.Note</MudAlert>
-                }
-            </MudPaper>
-        }
-    </MudStack>
-</div>
+﻿@using System.Text
+<MudStack Class="pa-4">
+    @foreach (var talentValue in Talent.Values)
+    {
+        <MudStack>
+            <MudStack Row Class="pa-2">
+                <MudIcon Icon="@GetIconForValueType(talentValue)" Color="@GetIconColorForValueType(talentValue)" />
+                <MudText>
+                    @((MarkupString)TalentContent.GetValueDescription(talentValue, UseChest, UseBackpack))
+                </MudText>
+            </MudStack>
+            @if (talentValue.IsConditional)
+            {
+                <MudAlert Icon="@Icons.Material.Filled.Directions" ContentAlignment="HorizontalAlignment.Left">@talentValue.Condition</MudAlert>
+            }
+            @if (!string.IsNullOrEmpty(talentValue.Note))
+            {
+                <MudAlert Icon="@Icons.Material.Filled.Info" ContentAlignment="HorizontalAlignment.Left">@talentValue.Note</MudAlert>
+            }
+        </MudStack>
+    }
+</MudStack>
 
 @code {
     [Parameter] public required TalentData Talent { get; set; }
@@ -27,12 +28,12 @@
 
     private string GetIconForValueType(TalentValueData talentValue)
     {
-        if (talentValue.TargetStat == Stat.AMP && talentValue.Type == TalentValueType.Flat)
+        if (talentValue.TargetStat == Stat.AMP && talentValue.ApplicationType == TalentValueType.Flat)
         {
             return Icons.Material.Filled.KeyboardDoubleArrowRight;
         }
 
-        return talentValue.Type switch
+        return talentValue.ApplicationType switch
         {
             TalentValueType.Flat => Icons.Material.Filled.KeyboardArrowRight,
             TalentValueType.Stacking => Icons.Material.Filled.StackedLineChart,
