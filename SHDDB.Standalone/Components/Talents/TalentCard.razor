@@ -1,50 +1,48 @@
-﻿<MudPaper MinWidth="375px" MaxWidth="375px" MinHeight="145px" Elevation="3" Class="talent-page flex-grow-1 rounded-xl pa-2" Style="text-align: center">
+﻿<MudPaper MinWidth="350px" MaxWidth="350px" MinHeight="125px" Elevation="3" Class="talent-page flex-grow-1 rounded-xl pa-2" Style="@($"text-align: center; background: {CustomTheme.Theme.PaletteDark.Dark}")">
     <MudStack>
-        <MudStack AlignItems="AlignItems.Center">
-            <div class="cursor-pointer" @onclick="OnExpandCollapseClick">
-                <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Center">
-                    <MudText Typo="Typo.h5">@Talent.Name</MudText>
-                    @if (Talent.Values.Any(x => !x.Complete))
+        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" StretchItems="StretchItems.None" Class="px-2">
+            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.FlexStart" StretchItems="StretchItems.None" Spacing="0">
+                <MudChip T="string" Variant="Variant.Filled" Text="@Talent.Type.GetString()" Size="Size.Small" Style="@GetTypeChipStyle()" />
+                @if (Talent.Type != TalentType.GearsetBase)
+                {
+                    <MudChip T="string" Variant="Variant.Outlined" Text="@Talent.Slot.ToString()" Size="Size.Small" />
+                }
+            </MudStack>
+            <MudStack Row Spacing="1">
+                @foreach (var talentValue in Talent.Values)
+                {
+                    <TalentAvatarGroup Value="talentValue" IncludeCondition />
+                }
+            </MudStack>
+        </MudStack>
+        <div class="cursor-pointer" @onclick="OnExpandCollapseClick">
+            <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.h5">@Talent.Name</MudText>
+                @if (Talent.Values.Any(x => !x.Complete))
+                {
+                    <MudTooltip Text="Talent is incomplete" ShowOnHover Placement=Placement.Bottom Delay="500">
+                        <MudIcon Icon=@Icons.Material.Filled.Error Color=Color.Error Size=Size.Small />
+                    </MudTooltip>
+                }
+            </MudStack>
+        </div>
+        <MudCollapse Expanded="ExpandedDetails">
+            <MudStack>
+                <MudStack Row Justify="Justify.Center">
+                    @if (Talent.HasChestModifier)
                     {
-                        <MudTooltip Text="Talent is incomplete" ShowOnHover Placement=Placement.Bottom Delay="500">
-                            <MudIcon Icon=@Icons.Material.Filled.Error Color=Color.Error Size=Size.Small />
+                        <MudTooltip Text="Toggle Chest" Arrow Placement="Placement.Bottom">
+                            <MudToggleIconButton @bind-Toggled="_useChest" DropShadow Size="Size.Small" Icon="@Icons.Material.Filled.Shield" ToggledColor="Color.Success" Disabled="!ExpandedDetails" />
+                        </MudTooltip>
+                    }
+
+                    @if (Talent.HasBackpackModifier)
+                    {
+                        <MudTooltip Text="Toggle Backpack" Arrow Placement="Placement.Bottom">
+                            <MudToggleIconButton @bind-Toggled="_useBackpack" DropShadow Size="Size.Small" Icon="@Icons.Material.Filled.Backpack" ToggledColor="Color.Success" Disabled="!ExpandedDetails" />
                         </MudTooltip>
                     }
                 </MudStack>
-            </div>
-            <MudStack Row Wrap="Wrap.Wrap" Justify="Justify.Center">
-                @if (Talent.Type == TalentType.Perfect)
-                {
-                    <MudChip T="string" Icon="@Icons.Material.Filled.KeyboardDoubleArrowUp" Size="Size.Small" Style="@($"color: {Colors.Amber.Lighten1}; border: 1px solid {Colors.Amber.Lighten1}")">Perfect</MudChip>
-                }
-                @foreach (var talentValue in Talent.Values)
-                {
-                    <MudChip T="string" Size="Size.Small" Class="@GetBorderForValueChip(talentValue)" Variant="@GetValueChipVariant(talentValue)" Icon="@GetValueIcon(talentValue)" Color="@GetValueColor(talentValue)">@GetValueText(talentValue)</MudChip>
-                }
-            </MudStack>
-            @if (Talent.HasModifiers)
-            {
-                <MudPaper Elevation="2">
-                    <MudStack Row Justify="Justify.Center">
-                        @if (Talent.HasChestModifier)
-                        {
-                            <MudTooltip Text="@(ExpandedDetails ? "Toggle Chest" : "Has Chest")" Arrow Placement="Placement.Bottom">
-                                <MudToggleIconButton @bind-Toggled="_useChest" DropShadow Size="@(ExpandedDetails ? Size.Medium : Size.Small)" Icon="@Icons.Material.Filled.Shield" ToggledColor="Color.Success" Disabled="!ExpandedDetails" />
-                            </MudTooltip>
-                        }
-
-                        @if (Talent.HasBackpackModifier)
-                        {
-                            <MudTooltip Text="@(ExpandedDetails ? "Toggle Backpack" : "Has Backpack")" Arrow Placement="Placement.Bottom">
-                                <MudToggleIconButton @bind-Toggled="_useBackpack" DropShadow Size="@(ExpandedDetails ? Size.Medium : Size.Small)" Icon="@Icons.Material.Filled.Backpack" ToggledColor="Color.Success" Disabled="!ExpandedDetails" />
-                            </MudTooltip>
-                        }
-                    </MudStack>
-                </MudPaper>
-            }
-        </MudStack>
-        <MudCollapse Expanded="ExpandedDetails">
-            <MudStack>
                 <MudDivider DividerType="DividerType.Middle" />
                 <TalentValues Talent="Talent" UseBackpack="_useBackpack" UseChest="_useChest" />
             </MudStack>
@@ -58,28 +56,32 @@
 
     [Parameter] public bool ExpandedDetails { get; set; } = false;
 
+    private bool shouldRender = false;
+
+    protected override bool ShouldRender() => shouldRender;
+
     private bool _useBackpack { get; set; } = false;
     private bool _useChest { get; set; } = false;
+
+    protected override void OnParametersSet()
+    {
+        shouldRender = true;
+    }
 
     private void OnExpandCollapseClick()
     {
         ExpandedDetails = !ExpandedDetails;
     }
 
-    private string? GetValueIcon(TalentValueData talentValue)
+    private string GetTypeChipStyle()
     {
-        if (talentValue.ApplicationType == TalentValueType.Stacking && !talentValue.TargetStat.IsUtility())
+        return Talent.Type switch
         {
-            return Icons.Material.Filled.StackedLineChart;
-        }
-
-        return talentValue.TargetStat switch
-        {
-            Stat.TargetCount => Icons.Material.Filled.People,
-            Stat.RPM => Icons.Material.Filled.Speed,
-            Stat.ReloadSpeed => Icons.Material.Filled.Refresh,
-            Stat.AMP => @Icons.Material.Filled.KeyboardDoubleArrowRight,
-            _ => Icons.Material.Filled.KeyboardArrowRight
+            TalentType.HighEnd => $"background: {CustomTheme.HighEnd}; color: {Colors.Shades.Black}",
+            TalentType.Perfect => $"background: {CustomTheme.PerfectDarken}; color: {Colors.Shades.Black}",
+            TalentType.Exotic => $"background: {CustomTheme.Exotic}; color: {Colors.Shades.Black}",
+            TalentType.GearsetBase => $"background: {CustomTheme.Gearset}; color: {Colors.Shades.Black}",
+            _ => ""
         };
     }
 
@@ -112,17 +114,5 @@
         }
 
         return string.Empty;
-    }
-
-    private string GetValueText(TalentValueData talentValue)
-    {
-        if (talentValue.ApplicationType == TalentValueType.MultiTarget)
-        {
-            return talentValue.TargetStat.AsString();
-        }
-        else
-        {
-            return $"{(talentValue.IsConditional ? "Conditional " : string.Empty)}{talentValue.ApplicationType} {talentValue.TargetStat.AsString()}";
-        }
     }
 }

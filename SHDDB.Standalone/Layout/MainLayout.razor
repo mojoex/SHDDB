@@ -1,6 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@using SHDDB.Standalone.Theme
+@inherits LayoutComponentBase
 
-<MudThemeProvider Theme="CustomTheme" @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" />
+<MudThemeProvider Theme="Theme" @bind-IsDarkMode="@_isDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -9,6 +10,7 @@
     <MudAppBar Dense="true" Elevation="24">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h5" Class="ml-3">SHDDB</MudText>
+        <MudIcon Icon="@Icons.Material.Filled.DataArray"/>
         <MudSpacer />
         <MudTooltip Text="Raise a bug" Color="Color.Error" Placement="Placement.Bottom">
             <MudIconButton Icon="@Icons.Material.Filled.BugReport" Color="Color.Inherit" Edge="Edge.End" Href="https://github.com/mojoex/SHDDB/issues" />
@@ -31,46 +33,18 @@
 </MudLayout>
 
 @code {
-    bool _drawerOpen = true; 
-    private bool _isDarkMode;
-    private MudThemeProvider _mudThemeProvider;
+    bool _drawerOpen = true;
+    private bool _isDarkMode { get; set; } = true;
+    private MudTheme Theme = CustomTheme.Theme;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override void OnInitialized()
     {
-        if (firstRender)
-        {
-            _isDarkMode = await _mudThemeProvider.GetSystemPreference();
-            StateHasChanged();
-        }
+        StateHasChanged();
     }
 
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
     }
-
-    MudTheme CustomTheme = new()
-        { 
-            PaletteLight = new()
-            {
-                
-            },
-            PaletteDark = new()
-            {
-
-            },
-            Shadows = new()
-            {
-
-            },
-            Typography = new()
-            {
-
-            },
-            LayoutProperties = new()
-            {
-                
-            }
-        };
 }
 
