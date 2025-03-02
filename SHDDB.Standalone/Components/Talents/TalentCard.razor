@@ -1,0 +1,118 @@
+﻿<MudPaper MinWidth="350px" MaxWidth="350px" MinHeight="125px" Elevation="3" Class="talent-page flex-grow-1 rounded-xl pa-2" Style="@($"text-align: center; background: {CustomTheme.Theme.PaletteDark.Dark}")">
+    <MudStack>
+        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" StretchItems="StretchItems.None" Class="px-2">
+            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.FlexStart" StretchItems="StretchItems.None" Spacing="0">
+                <MudChip T="string" Variant="Variant.Filled" Text="@Talent.Type.GetString()" Size="Size.Small" Style="@GetTypeChipStyle()" />
+                @if (Talent.Type != TalentType.GearsetBase)
+                {
+                    <MudChip T="string" Variant="Variant.Outlined" Text="@Talent.Slot.ToString()" Size="Size.Small" />
+                }
+            </MudStack>
+            <MudStack Row Spacing="1">
+                @foreach (var talentValue in Talent.Values)
+                {
+                    <TalentAvatarGroup Value="talentValue" IncludeCondition />
+                }
+            </MudStack>
+        </MudStack>
+        <div class="cursor-pointer" @onclick="OnExpandCollapseClick">
+            <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.h5">@Talent.Name</MudText>
+                @if (Talent.Values.Any(x => !x.Complete))
+                {
+                    <MudTooltip Text="Talent is incomplete" ShowOnHover Placement=Placement.Bottom Delay="500">
+                        <MudIcon Icon=@Icons.Material.Filled.Error Color=Color.Error Size=Size.Small />
+                    </MudTooltip>
+                }
+            </MudStack>
+        </div>
+        <MudCollapse Expanded="ExpandedDetails">
+            <MudStack>
+                <MudStack Row Justify="Justify.Center">
+                    @if (Talent.HasChestModifier)
+                    {
+                        <MudTooltip Text="Toggle Chest" Arrow Placement="Placement.Bottom">
+                            <MudToggleIconButton @bind-Toggled="_useChest" DropShadow Size="Size.Small" Icon="@Icons.Material.Filled.Shield" ToggledColor="Color.Success" Disabled="!ExpandedDetails" />
+                        </MudTooltip>
+                    }
+
+                    @if (Talent.HasBackpackModifier)
+                    {
+                        <MudTooltip Text="Toggle Backpack" Arrow Placement="Placement.Bottom">
+                            <MudToggleIconButton @bind-Toggled="_useBackpack" DropShadow Size="Size.Small" Icon="@Icons.Material.Filled.Backpack" ToggledColor="Color.Success" Disabled="!ExpandedDetails" />
+                        </MudTooltip>
+                    }
+                </MudStack>
+                <MudDivider DividerType="DividerType.Middle" />
+                <TalentValues Talent="Talent" UseBackpack="_useBackpack" UseChest="_useChest" />
+            </MudStack>
+        </MudCollapse>
+    </MudStack>
+</MudPaper>
+
+@code {
+    [Parameter] public required TalentData Talent { get; set; }
+    [Parameter] public bool Minimal { get; set; } = false;
+
+    [Parameter] public bool ExpandedDetails { get; set; } = false;
+
+    private bool shouldRender = false;
+
+    protected override bool ShouldRender() => shouldRender;
+
+    private bool _useBackpack { get; set; } = false;
+    private bool _useChest { get; set; } = false;
+
+    protected override void OnParametersSet()
+    {
+        shouldRender = true;
+    }
+
+    private void OnExpandCollapseClick()
+    {
+        ExpandedDetails = !ExpandedDetails;
+    }
+
+    private string GetTypeChipStyle()
+    {
+        return Talent.Type switch
+        {
+            TalentType.HighEnd => $"background: {CustomTheme.HighEnd}; color: {Colors.Shades.Black}",
+            TalentType.Perfect => $"background: {CustomTheme.PerfectDarken}; color: {Colors.Shades.Black}",
+            TalentType.Exotic => $"background: {CustomTheme.Exotic}; color: {Colors.Shades.Black}",
+            TalentType.GearsetBase => $"background: {CustomTheme.Gearset}; color: {Colors.Shades.Black}",
+            _ => ""
+        };
+    }
+
+    private Color? GetValueColor(TalentValueData talentValue)
+    {
+        return talentValue.TargetStat switch
+        {
+            Stat.TargetCount => Color.Info,
+            Stat.RPM => Color.Info,
+            Stat.ReloadSpeed => Color.Info,
+            _ => Color.Error
+        };
+    }
+
+    private Variant GetValueChipVariant(TalentValueData talentValue)
+    {
+        if (talentValue.IsConditional)
+        {
+            return Variant.Outlined;
+        }
+
+        return Variant.Filled;
+    }
+
+    private string GetBorderForValueChip(TalentValueData talentValue)
+    {
+        if (talentValue.IsConditional)
+        {
+            return "border-dashed";
+        }
+
+        return string.Empty;
+    }
+}

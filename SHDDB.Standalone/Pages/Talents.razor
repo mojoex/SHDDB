@@ -1,0 +1,186 @@
+﻿@page "/"
+@using SHDDB.Standalone.Components.Talents
+
+<PageTitle>Talents</PageTitle>
+
+@* Filtering Paper *@
+<MudPaper MinWidth="100%" Elevation="25" Class="pa-4 mt-4">
+    <MudStack Row StretchItems="StretchItems.End" Spacing="2">
+        @* Page View Style *@
+        <MudMenu Icon="@Icons.Material.Filled.FilterList" Class="ml-2" Variant="Variant.Filled" Dense>
+            <MudMenuItem Icon="@Icons.Material.Filled.List" @onclick="() => _listView = true" />
+            <MudMenuItem Icon="@Icons.Material.Filled.GridView" @onclick="() => _listView = false" />
+        </MudMenu>
+
+        @* Filter Menu *@
+        <MudMenu Icon="@Icons.Material.Filled.FilterAlt" Variant="Variant.Filled" Dense>
+            <MudMenuItem Label="Clear" OnClick="ClearFilters" />
+            <MudDivider />
+            <MudMenuItem>
+                <MudCheckBox T="bool" Dense Label="High-End" Value="@_typeFilters[TalentType.HighEnd]" ValueChanged=@(async (isChecked) => await ToggleFilter(TalentType.HighEnd, isChecked)) />
+            </MudMenuItem>
+            <MudMenuItem>
+                <MudCheckBox T="bool" Dense Label="Gearsets" Value="@_typeFilters[TalentType.GearsetBase]" ValueChanged=@(async (isChecked) => await ToggleFilter(TalentType.GearsetBase, isChecked)) />
+            </MudMenuItem>
+            <MudMenuItem>
+                <MudCheckBox T="bool" Dense Label="Perfect" Value="@_typeFilters[TalentType.Perfect]" ValueChanged=@(async (isChecked) => await ToggleFilter(TalentType.Perfect, isChecked)) />
+            </MudMenuItem>
+            <MudMenuItem>
+                <MudCheckBox T="bool" Dense Label="Exotic" Value="@_typeFilters[TalentType.Exotic]" ValueChanged=@(async (isChecked) => await ToggleFilter(TalentType.Exotic, isChecked)) />
+            </MudMenuItem>
+            <MudDivider />
+            <MudMenuItem>
+                <MudCheckBox T="bool" Dense Label="Backpack" Value="@_slotFilters[Slot.Backpack]" ValueChanged=@(async (isChecked) => await ToggleFilter(Slot.Backpack, isChecked)) />
+            </MudMenuItem>
+            <MudMenuItem>
+                <MudCheckBox T="bool" Dense Label="Chest" Value="@_slotFilters[Slot.Chest]" ValueChanged=@(async (isChecked) => await ToggleFilter(Slot.Chest, isChecked)) />
+            </MudMenuItem>
+            <MudMenuItem>
+                <MudCheckBox T="bool" Dense Label="Weapon" Value="@_slotFilters[Slot.Weapon]" ValueChanged=@(async (isChecked) => await ToggleFilter(Slot.Weapon, isChecked)) />
+            </MudMenuItem>
+        </MudMenu>
+
+        <MudDivider Vertical="true" FlexItem />
+
+        <MudButton OnClick=ToggleExpandAll Size=Size.Small Variant="Variant.Filled">@(_allExpanded ? "Collapse All" : "Expand All")</MudButton>
+
+        <MudDivider Vertical="true" FlexItem />
+
+        @* Search Field *@
+        <MudTextField T="string" Value="@_searchText" Label="Search.. " Variant="Variant.Filled" ValueChanged=@(async (value) => await TextFilter(value).ConfigureAwait(false)) Immediate />
+    </MudStack>
+</MudPaper>
+
+<MudDivider DividerType="DividerType.Middle" Class="my-6" />
+
+@if (_listView)
+{
+    <MudExpansionPanels MultiExpansion="true" Outlined="false">
+        @foreach (var talent in CurrentTalents)
+        {
+            <MudExpansionPanel Text="@talent.Name">
+                <TalentCard Talent="@talent" />
+            </MudExpansionPanel>
+        }
+    </MudExpansionPanels>
+}
+else
+{
+    <MudStack AlignItems="AlignItems.Start" Justify="Justify.Center" Row Wrap="Wrap.Wrap">
+        @if (!CurrentTalents.Any())
+        {
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="350px" Height="125px" />
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="350px" Height="125px" />
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="350px" Height="125px" />
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="350px" Height="125px" />
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="350px" Height="125px" />
+        }
+
+        @* <Virtualize TItem="TalentData" Items="CurrentTalents.ToList()" >
+            <TalentCard Talent="context" ExpandedDetails="_allExpanded"/>
+        </Virtualize> *@
+        @foreach (var talent in CurrentTalents)
+        {
+            <TalentCard Talent="@talent" ExpandedDetails="_allExpanded" />
+        }
+    </MudStack>
+}
+
+
+@code {
+    private IEnumerable<TalentData> CurrentTalents { get; set; } = [];
+    private int CurrentTalentCount => CurrentTalents.Count();
+
+    private Dictionary<TalentType, bool> _typeFilters { get; set; } = [];
+    private Dictionary<Slot, bool> _slotFilters { get; set; } = [];
+
+    private bool _listView = false;
+    private bool _filtersOpen = false;
+    private string _searchText { get; set; } = string.Empty;
+
+    private bool _allExpanded { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentTalents = await Task.Run(() => StaticData.Talents.OrderBy(x => x.Name));
+
+        _typeFilters = new()
+            {
+                [TalentType.HighEnd] = false,
+                [TalentType.Perfect] = false,
+                [TalentType.Exotic] = false,
+                [TalentType.GearsetBase] = false
+            };
+
+        _slotFilters = new()
+            {
+                [Slot.Backpack] = false,
+                [Slot.Chest] = false,
+                [Slot.Weapon] = false
+            };
+    }
+
+    private void ToggleExpandAll()
+    {
+        _allExpanded = !_allExpanded;
+    }
+
+    private void ToggleFilters()
+    {
+        _filtersOpen = !_filtersOpen;
+    }
+
+    private async Task ClearFilters()
+    {
+        foreach (var value in _typeFilters)
+        {
+            _typeFilters[value.Key] = false;
+        }
+
+        foreach (var value in _slotFilters)
+        {
+            _slotFilters[value.Key] = false;
+        }
+
+        _searchText = string.Empty;
+
+        await ApplyFilters();
+    }
+
+    private async Task ToggleFilter(TalentType type, bool value)
+    {
+        _typeFilters[type] = value;
+
+        await ApplyFilters();
+    }
+
+    private async Task ToggleFilter(Slot type, bool value)
+    {
+        _slotFilters[type] = value;
+
+        await ApplyFilters();
+    }
+
+    private async Task TextFilter(string value)
+    {
+        _searchText = value;
+
+        if (string.IsNullOrEmpty(_searchText))
+        {
+            CurrentTalents = CurrentTalents;
+        }
+
+        else
+        {
+            CurrentTalents = await Task.Run(() => CurrentTalents.Where(x => x.Name.Contains(_searchText, StringComparison.OrdinalIgnoreCase)).OrderBy(x => x.Name));
+        }
+    }
+
+    private async Task ApplyFilters()
+    {
+        var selectedTypeFilters = _typeFilters.Any(x => x.Value) ? _typeFilters.Where(x => x.Value).Select(x => x.Key) : _typeFilters.Keys;
+        var slotFilters = _slotFilters.Any(x => x.Value) ? _slotFilters.Where(x => x.Value).Select(x => x.Key) : _slotFilters.Keys;
+
+        CurrentTalents = await Task.Run(() => StaticData.Talents.Where(x => selectedTypeFilters.Contains(x.Type) && slotFilters.Contains(x.Slot) || (_typeFilters[TalentType.GearsetBase] && x.Slot == Slot.None)));
+    }
+}

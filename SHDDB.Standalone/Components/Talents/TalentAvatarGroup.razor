@@ -1,0 +1,59 @@
+﻿<MudTooltip Delay="500" Placement="Placement.Bottom" Arrow Text="@GetValueText()">
+    <MudAvatarGroup Spacing="1">
+        @if (Value.IsConditional && IncludeCondition)
+        {
+            <MudAvatar Variant="Variant.Filled" Size="@Size" Style="@($"background: {CustomTheme.Condition}")" Elevation="4">
+                <MudIcon Icon="@Icons.Material.Outlined.Directions" Size="@Size" Color="Color.Dark" />
+            </MudAvatar>
+        }
+        @if (Value.StackingMultiplier != null)
+        {
+            <MudAvatar Variant="Variant.Filled" Size="@Size" Style="@($"background: {CustomTheme.Stacking}")" Elevation="4">
+                <MudIcon Icon="@Icons.Material.Outlined.StackedLineChart" Size="@Size" Color="Color.Dark" />
+            </MudAvatar>
+        }
+        <MudAvatar Variant="Variant.Filled" Size="@Size" Style="@($"background: {GetBackgroundColor()}")" Elevation="4">
+            <MudIcon Icon="@GetValueIcon()" Size="@Size" Color="Color.Dark"/>
+        </MudAvatar>
+    </MudAvatarGroup>
+</MudTooltip>
+
+@code {
+    [Parameter] public required TalentValueData Value { get; set; }
+    [Parameter] public Size Size { get; set; } = Size.Small;
+    [Parameter] public bool IncludeCondition { get; set; } = false;
+
+    private string GetValueText()
+    {
+        if (Value.ApplicationType == TalentValueType.MultiTarget)
+        {
+            return Value.TargetStat.AsString();
+        }
+        else
+        {
+            return $"{(Value.IsConditional ? "Conditional " : string.Empty)}{Value.ApplicationType} {Value.TargetStat.AsString()}";
+        }
+    }
+
+    private string GetBackgroundColor()
+    {
+        if (Value.TargetStat.IsUtility())
+        {
+            return CustomTheme.UtilityStat;
+        }
+
+        return CustomTheme.RedCore;
+    }
+
+    private string? GetValueIcon()
+    {
+        return Value.TargetStat switch
+        {
+            Stat.TargetCount => Icons.Material.Outlined.People,
+            Stat.RPM => Icons.Material.Outlined.Speed,
+            Stat.ReloadSpeed => Icons.Material.Outlined.Refresh,
+            Stat.AMP => @Icons.Material.Outlined.KeyboardDoubleArrowRight,
+            _ => Icons.Material.Outlined.KeyboardArrowRight
+        };
+    }
+}

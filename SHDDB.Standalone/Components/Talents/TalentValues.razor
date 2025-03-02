@@ -1,0 +1,84 @@
+﻿@using System.Text
+
+<MudStack Class="pa-3">
+    @foreach (var talentValue in Talent.Values)
+    {
+        <MudStack Spacing="-1">
+            <MudPaper Class="z-30 pa-2">
+                <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                    <TalentAvatarGroup Value="talentValue"/>
+                    <MudDivider Vertical Light FlexItem/>
+                    <MudText Typo="Typo.body2">
+                        @((MarkupString)TalentContent.GetValueDescription(talentValue, UseChest, UseBackpack))
+                    </MudText>
+                </MudStack>
+            </MudPaper>
+            @if (talentValue.IsConditional)
+            {
+                <MudPaper Square Class="@GetConditionBorderStyle(talentValue)">
+                    <MudStack Row Spacing="2" AlignItems="AlignItems.Center" Class="pa-1">
+                        <MudAvatar Variant="Variant.Filled" Size="Size.Small" Style="@($"background: {CustomTheme.Condition}")">
+                            <MudIcon Icon="@Icons.Material.Outlined.Directions" Size="Size.Small" Color="Color.Dark"/>
+                        </MudAvatar>
+                        <MudDivider Vertical Light FlexItem />
+                        <MudText Typo="Typo.caption" Style="@($"color: {CustomTheme.Theme.PaletteDark.TextSecondary}")">
+                            @talentValue.Condition
+                        </MudText>
+                    </MudStack>
+                </MudPaper>
+            }
+            @if (!string.IsNullOrEmpty(talentValue.Note))
+            {
+                <MudPaper Square Class="z-10 mx-2 rounded-b-lg">
+                    <MudStack Row Spacing="2" AlignItems="AlignItems.Center" Class="pa-1">
+                        <MudAvatar Variant="Variant.Filled" Size="Size.Small" Color="Color.Warning">
+                            <MudIcon Icon="@Icons.Material.Outlined.Info" Size="Size.Small" Color="Color.Dark"/>
+                        </MudAvatar>
+                        <MudDivider Vertical Light FlexItem />
+                        <MudText Typo="Typo.caption" Style="@($"color: {CustomTheme.Theme.PaletteDark.TextSecondary}")">
+                            @talentValue.Note
+                        </MudText>
+                    </MudStack>
+                </MudPaper>
+            }
+        </MudStack>
+    }
+</MudStack>
+
+@code {
+    [Parameter] public required TalentData Talent { get; set; }
+    [Parameter] public bool UseChest { get; set; } = false;
+    [Parameter] public bool UseBackpack { get; set; } = false;
+
+    private string GetIconForValueType(TalentValueData talentValue)
+    {
+        if (talentValue.TargetStat == Stat.AMP && talentValue.ApplicationType == TalentValueType.Flat)
+        {
+            return Icons.Material.Filled.KeyboardDoubleArrowRight;
+        }
+
+        return talentValue.ApplicationType switch
+        {
+            TalentValueType.Flat => Icons.Material.Filled.KeyboardArrowRight,
+            TalentValueType.Stacking => Icons.Material.Filled.StackedLineChart,
+            TalentValueType.MultiTarget => Icons.Material.Filled.People,
+            _ => Icons.Material.Filled.Error
+        };
+    }
+
+    private string GetConditionBorderStyle(TalentValueData value)
+    {
+        return string.IsNullOrEmpty(value.Note) ? "z-20 mx-2 rounded-b-lg" : "z-20 mx-2";
+    }
+
+    private Color GetIconColorForValueType(TalentValueData talentValue)
+    {
+        return talentValue.TargetStat switch
+        {
+            Stat.TargetCount => Color.Info,
+            Stat.ReloadSpeed => Color.Info,
+            Stat.RPM => Color.Info,
+            _ => Color.Error
+        };
+    }
+}
