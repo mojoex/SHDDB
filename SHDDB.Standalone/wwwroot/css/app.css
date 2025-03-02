@@ -1,10 +1,29 @@
-.talent-page {
+.talent-card {
     transition: transform 0.2s;
+    position: relative;
 }
-
-    .talent-page:hover {
+    .talent-card:hover {
         transform: scale(1.05);
     }
+
+.overlay {
+    position: absolute;
+    z-index: 10;
+    top: 45px;
+    left: 4px;
+}
+
+.single-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 20px;
+}
+
+.extra-small {
+    transform: scale(0.7);
+    display: inline-block;
+}
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;

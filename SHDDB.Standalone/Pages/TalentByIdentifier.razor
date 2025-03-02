@@ -1,0 +1,38 @@
+﻿@page "/talent/{Identifier}"
+@using SHDDB.Standalone.Components.Talents
+
+<div class="single-container">
+    @if (Talent == null)
+    {
+        <MudText Align="Align.Center">
+            Invalid Talent Identifier, redirecting...
+        </MudText>
+    }
+    else
+    {
+        <TalentCard Talent="Talent" ExpandedDetails Standalone />
+    }
+</div>
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; }
+    [Parameter] public string Identifier { get; set; }
+
+    private TalentData? Talent { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(Identifier))
+        {
+            Talent = StaticData.Talents.FirstOrDefault(x => x.Name == Identifier);
+        }
+
+        if (Talent == null)
+        {
+            await Task.Delay(1000);
+
+            // If not valid, redirect to the /talents page
+            Navigation.NavigateTo("/talents");
+        }
+    }
+}

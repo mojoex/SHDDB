@@ -1,5 +1,8 @@
 ﻿@page "/"
+@page "/talents"
+
 @using SHDDB.Standalone.Components.Talents
+@using System.Web
 
 <PageTitle>Talents</PageTitle>
 
@@ -46,6 +49,10 @@
 
         <MudDivider Vertical="true" FlexItem />
 
+        <MudButton OnClick=ToggleShowUnpinned Size=Size.Small Variant="Variant.Filled">@(_showUnpinned ? "Hide Unpinned" : "Show Unpinned")</MudButton>
+
+        <MudDivider Vertical="true" FlexItem />
+
         @* Search Field *@
         <MudTextField T="string" Value="@_searchText" Label="Search.. " Variant="Variant.Filled" ValueChanged=@(async (value) => await TextFilter(value).ConfigureAwait(false)) Immediate />
     </MudStack>
@@ -79,9 +86,16 @@ else
         @* <Virtualize TItem="TalentData" Items="CurrentTalents.ToList()" >
             <TalentCard Talent="context" ExpandedDetails="_allExpanded"/>
         </Virtualize> *@
-        @foreach (var talent in CurrentTalents)
+        @foreach (var pinnedTalent in PinnedTalents.Values)
         {
-            <TalentCard Talent="@talent" ExpandedDetails="_allExpanded" />
+            <TalentCard Talent="@pinnedTalent" ExpandedDetails="_allExpanded" OnPin="HandlePin" IsPinned="true" />
+        }
+        @if (_showUnpinned)
+        {
+            @foreach (var talent in CurrentTalents.Where(x => !PinnedTalents.Keys.Contains(x.Name)))
+            {
+                <TalentCard @key="talent" Talent="@talent" ExpandedDetails="_allExpanded" OnPin="HandlePin" IsPinned="false"/>
+            }
         }
     </MudStack>
 }
@@ -89,6 +103,8 @@ else
 
 @code {
     private IEnumerable<TalentData> CurrentTalents { get; set; } = [];
+    private Dictionary<string, TalentData> PinnedTalents { get; set; } = [];
+
     private int CurrentTalentCount => CurrentTalents.Count();
 
     private Dictionary<TalentType, bool> _typeFilters { get; set; } = [];
@@ -100,10 +116,10 @@ else
 
     private bool _allExpanded { get; set; } = false;
 
+    private bool _showUnpinned { get; set; } = true;
+
     protected override async Task OnInitializedAsync()
     {
-        CurrentTalents = await Task.Run(() => StaticData.Talents.OrderBy(x => x.Name));
-
         _typeFilters = new()
             {
                 [TalentType.HighEnd] = false,
@@ -118,6 +134,25 @@ else
                 [Slot.Chest] = false,
                 [Slot.Weapon] = false
             };
+
+        CurrentTalents = await Task.Run(() => StaticData.Talents.OrderBy(x => x.Name));
+    }
+
+    private void HandlePin(string talentName)
+    {
+        if (PinnedTalents.ContainsKey(talentName))
+        {
+            PinnedTalents.Remove(talentName);
+        }
+        else
+        {
+            PinnedTalents.Add(talentName, StaticData.Talents.First(x => x.Name == talentName));
+        }
+    }
+
+    private void ToggleShowUnpinned()
+    {
+        _showUnpinned = !_showUnpinned;
     }
 
     private void ToggleExpandAll()
