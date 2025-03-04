@@ -1,6 +1,6 @@
 {
-  "name": "SHDDB.Standalone",
-  "short_name": "SHDDB.Standalone",
+  "name": "SHDDB",
+  "short_name": "SHDDB",
   "id": "./",
   "start_url": "./",
   "display": "standalone",

@@ -4,7 +4,7 @@
             @if (!Standalone)
             {
                 <MudStack Row Spacing="0">
-                    <MudIconButton Class="pa-1 extra-small" OnClick="NotifyPin" Icon="@Icons.Material.Filled.PushPin" Variant="Variant.Text" Style="@(($"color: {(IsPinned ? CustomTheme.Theme.PaletteDark.Tertiary : CustomTheme.Theme.PaletteDark.GrayDefault)}"))" />
+                    <MudIconButton Class="pa-1 extra-small" OnClick="NotifyPin" Icon="@Icons.Material.Filled.PushPin" Variant="Variant.Text" Style="@(($"color: {(isPinned ? CustomTheme.Theme.PaletteDark.Tertiary : CustomTheme.Theme.PaletteDark.GrayDefault)}"))" />
                     <MudIconButton Class="pa-1 extra-small" Icon="@Icons.Material.Filled.Share" Variant="Variant.Text" OnClick="ToggleSharePopover"/>
                     <MudPopover Open="@_sharePopoverOpen" AnchorOrigin="Origin.BottomCenter" RelativeWidth="DropdownWidth.Adaptive" >
                         <MudTextField T="string" AutoFocus ReadOnly Text=@GetShareLink() FullWidth />
@@ -20,7 +20,7 @@
                 }
             </MudStack>
         </MudStack>
-        <div class="cursor-pointer" @onclick="OnExpandCollapseClick">
+        <div class="cursor-pointer" @onclick="ToggleExpandDetails">
             <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Center">
                 <MudText Typo="Typo.h5">@Talent.Name</MudText>
                 @if (Talent.Values.Any(x => !x.Complete))
@@ -38,20 +38,20 @@
                 <MudChip T="string" Variant="Variant.Outlined" Text="@Talent.Slot.ToString()" Size="Size.Small" />
             }
         </MudStack>
-        <MudCollapse Expanded="ExpandedDetails">
+        <MudCollapse Expanded="isExpanded || ForceExpand">
             <MudStack>
                 <MudStack Row Justify="Justify.Center">
                     @if (Talent.HasChestModifier)
                     {
                         <MudTooltip Text="Toggle Chest" Arrow Placement="Placement.Bottom">
-                            <MudToggleIconButton @bind-Toggled="_useChest" DropShadow Size="Size.Small" Icon="@Icons.Material.Filled.Shield" ToggledColor="Color.Success" Disabled="!ExpandedDetails" />
+                            <MudToggleIconButton ToggledChanged="ToggleChest" Toggled="_useChest" DropShadow Size="Size.Small" Icon="@Icons.Material.Filled.Shield" ToggledColor="Color.Success" />
                         </MudTooltip>
                     }
 
                     @if (Talent.HasBackpackModifier)
                     {
                         <MudTooltip Text="Toggle Backpack" Arrow Placement="Placement.Bottom">
-                            <MudToggleIconButton @bind-Toggled="_useBackpack" DropShadow Size="Size.Small" Icon="@Icons.Material.Filled.Backpack" ToggledColor="Color.Success" Disabled="!ExpandedDetails" />
+                            <MudToggleIconButton ToggledChanged="ToggleBackpack" Toggled="_useBackpack" DropShadow Size="Size.Small" Icon="@Icons.Material.Filled.Backpack" ToggledColor="Color.Success" />
                         </MudTooltip>
                     }
                 </MudStack>
@@ -63,24 +63,44 @@
 </MudPaper>
 
 @code {
-        [Inject] private NavigationManager Navigation { get; set; }
-        [Parameter] public required TalentData Talent { get; set; }
-        [Parameter] public bool Minimal { get; set; } = false;
-        [Parameter] public bool Standalone { get; set; } = false;
-        [Parameter] public bool ExpandedDetails { get; set; } = false;
-        [Parameter] public EventCallback<string> OnPin { get; set; }
-        [Parameter] public bool IsPinned { get; set; }
+    [Inject] private NavigationManager Navigation { get; set; }
+    [Parameter] public required TalentData Talent { get; set; }
+    [Parameter] public bool Minimal { get; set; } = false;
+    [Parameter] public bool Standalone { get; set; } = false;
+    [Parameter] public bool ForceExpand { get; set; } = false;
+    [Parameter] public EventCallback<string> OnPin { get; set; }
 
-    private bool shouldRender = false;
     private bool _useBackpack { get; set; } = false;
     private bool _useChest { get; set; } = false;
     private bool _sharePopoverOpen { get; set; } = false;
 
-    protected override bool ShouldRender() => shouldRender;
+    private bool isPinned = false;
+    private bool isExpanded = false;
+
+    private bool previousIsExpanded = false;
+
+    private bool shouldRender = false;
 
     protected override void OnParametersSet()
     {
-        shouldRender = true;
+        if (previousIsExpanded != ForceExpand)
+        {
+            shouldRender = true;
+            previousIsExpanded = ForceExpand;
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (shouldRender)
+        {
+            shouldRender = false;
+        }
+    }
+
+    protected override bool ShouldRender()
+    {
+        return shouldRender;
     }
 
     private string GetShareLink()
@@ -91,6 +111,7 @@
     private void ToggleSharePopover()
     {
         _sharePopoverOpen = !_sharePopoverOpen;
+        shouldRender = true;
     }
 
     private void NavigateToTalent()
@@ -100,14 +121,28 @@
 
     private async Task NotifyPin()
     {
-        IsPinned = !IsPinned;
+        isPinned = !isPinned;
+        shouldRender = true;
 
         await OnPin.InvokeAsync(Talent.Name);
     }
 
-    private void OnExpandCollapseClick()
+    private void ToggleExpandDetails()
     {
-        ExpandedDetails = !ExpandedDetails;
+        isExpanded = !isExpanded;
+        shouldRender = true;
+    }
+
+    private void ToggleChest()
+    {
+        _useChest = !_useChest;
+        shouldRender = true;
+    }
+
+    private void ToggleBackpack()
+    {
+        _useBackpack = !_useBackpack;
+        shouldRender = true;
     }
 
     private string GetTypeChipStyle()
