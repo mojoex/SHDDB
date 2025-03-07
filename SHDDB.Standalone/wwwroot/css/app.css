@@ -13,6 +13,10 @@
     left: 4px;
 }
 
+.blur-background {
+    backdrop-filter: blur(10px);
+}
+
 .single-container {
     display: flex;
     justify-content: center;

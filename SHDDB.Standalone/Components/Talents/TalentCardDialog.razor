@@ -1,0 +1,17 @@
+﻿<MudDialog Class="rounded-xl" ContentClass="d-flex pa-4">
+    <DialogContent>
+        <TalentCard Talent="Talent" Standalone ForceExpand />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public TalentData Talent { get; set; }
+
+    [CascadingParameter] 
+    private IMudDialogInstance Dialog { get; set; }
+
+    private void Submit() => Dialog.Close(DialogResult.Ok(true));
+}

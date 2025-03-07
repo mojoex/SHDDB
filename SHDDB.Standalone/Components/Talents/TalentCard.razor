@@ -1,4 +1,4 @@
-﻿<MudPaper MinWidth="350px" MaxWidth="350px" MinHeight="125px" Elevation="3" Class="talent-card flex-grow-1 rounded-xl pa-2" Style="@($"text-align: center; background: {CustomTheme.Theme.PaletteDark.Dark}")">
+﻿<MudPaper MinWidth="350px" MaxWidth="350px" MinHeight="125px" Elevation="3" Class="@($"{(!Standalone ? "talent-card" : "")} flex-grow-1 rounded-xl pa-2")" Style="@($"text-align: center; background: {CustomTheme.Theme.PaletteDark.Dark}")">
     <MudStack>
         <MudStack Row AlignItems="AlignItems.Center">
             @if (!Standalone)
@@ -9,7 +9,7 @@
                     <MudPopover Open="@_sharePopoverOpen" AnchorOrigin="Origin.BottomCenter" RelativeWidth="DropdownWidth.Adaptive" >
                         <MudTextField T="string" AutoFocus ReadOnly Text=@GetShareLink() FullWidth />
                     </MudPopover>
-                    <MudIconButton Class="pa-1 extra-small" Icon="@Icons.Material.Filled.OpenInNew" Variant="Variant.Text" OnClick="NavigateToTalent"/>
+                    <MudIconButton Class="pa-1 extra-small" Icon="@Icons.Material.Filled.OpenInNew" Variant="Variant.Text" OnClick="NotifyOnPopout"/>
                 </MudStack>
             }
             <MudSpacer/>
@@ -69,6 +69,7 @@
     [Parameter] public bool Standalone { get; set; } = false;
     [Parameter] public bool ForceExpand { get; set; } = false;
     [Parameter] public EventCallback<string> OnPin { get; set; }
+    [Parameter] public EventCallback<string> OnPopout { get; set; }
 
     private bool _useBackpack { get; set; } = false;
     private bool _useChest { get; set; } = false;
@@ -112,6 +113,11 @@
     {
         _sharePopoverOpen = !_sharePopoverOpen;
         shouldRender = true;
+    }
+
+    private void NotifyOnPopout()
+    {
+        OnPopout.InvokeAsync(Talent.Name);
     }
 
     private void NavigateToTalent()

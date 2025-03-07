@@ -2,6 +2,8 @@
 @page "/talents"
 
 @attribute [StreamRendering(true)]
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
 
 @using SHDDB.Standalone.Components.Talents
 @using System.Web
@@ -79,13 +81,16 @@ else
 
         @foreach (var talent in GetDisplayedTalents())
         {
-            <TalentCard @key=talent.Name Talent="@talent" ForceExpand="_allExpanded" OnPin="HandlePin" />
+            <TalentCard @key=talent.Name Talent="@talent" ForceExpand="_allExpanded" OnPin="HandlePin" OnPopout="HandlePopout" />
         }
     </MudStack>
 }
 
 
 @code {
+    [SupplyParameterFromQuery]
+    private string? TalentName { get; set; }
+
     private Dictionary<string, (TalentData Talent, TalentUiState State)> TalentDictionary { get; set; } = [];
     private TalentFilters TalentFilters = new();
 
@@ -133,6 +138,25 @@ else
     private void HandlePin(string talentName)
     {
         TalentDictionary[talentName].State.IsPinned = !TalentDictionary[talentName].State.IsPinned;
+    }
+
+    private Task HandlePopout(string talentName)
+    {
+        TalentName = talentName;
+
+        var parameters = new DialogParameters<TalentCardDialog>
+        {
+            { x => x.Talent, TalentDictionary[talentName].Talent }
+        };
+
+        var options = new DialogOptions()
+        {
+            CloseOnEscapeKey = true,
+            NoHeader = true,
+            BackgroundClass = "blur-background"
+        };
+
+        return DialogService.ShowAsync<TalentCardDialog>(talentName, parameters, options);
     }
 
     private void ToggleShowUnpinned()
