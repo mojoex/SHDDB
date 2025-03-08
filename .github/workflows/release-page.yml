@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     # uses GitHub's checkout action to checkout code form the master branch
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4.2.2
 
     # Uses .NET SDK
     - uses: actions/checkout@v4
@@ -24,7 +24,10 @@ jobs:
     - name: Publish .NET Core Project
       run: dotnet publish SHDDB.Standalone/SHDDB.Standalone.csproj -c Release -o release --nologo
 
-    - name: Commit wwwroot to GitHub Pages
-      uses: JamesIves/github-pages-deploy-action@4.7.3
+    - name: Deploy to GitHub Pages
+      # You may pin to the exact commit or the version.
+      # uses: JamesIves/github-pages-deploy-action@6c2d9db40f9296374acc17b90404b6e8864128c8
+      uses: JamesIves/github-pages-deploy-action@v4.7.3
       with:
         folder: release/wwwroot
+          
