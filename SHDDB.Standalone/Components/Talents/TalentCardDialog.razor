@@ -1,6 +1,11 @@
-﻿<MudDialog Class="rounded-xl" ContentClass="d-flex pa-4">
+﻿@inject NavigationManager Navigation
+
+<MudDialog Class="rounded-xl" ContentClass="d-flex pa-4" >
     <DialogContent>
-        <TalentCard Talent="Talent" Standalone ForceExpand />
+        <MudStack AlignItems="AlignItems.Center">
+            <TalentCard Talent="Talent" Standalone ForceExpand />
+            <MudTextField T="string" ReadOnly Text="@Navigation.Uri" FullWidth/>
+        </MudStack>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Submit">Close</MudButton>

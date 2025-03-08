@@ -4,12 +4,12 @@
             @if (!Standalone)
             {
                 <MudStack Row Spacing="0">
-                    <MudIconButton Class="pa-1 extra-small" OnClick="NotifyPin" Icon="@Icons.Material.Filled.PushPin" Variant="Variant.Text" Style="@(($"color: {(isPinned ? CustomTheme.Theme.PaletteDark.Tertiary : CustomTheme.Theme.PaletteDark.GrayDefault)}"))" />
-                    <MudIconButton Class="pa-1 extra-small" Icon="@Icons.Material.Filled.Share" Variant="Variant.Text" OnClick="ToggleSharePopover"/>
-                    <MudPopover Open="@_sharePopoverOpen" AnchorOrigin="Origin.BottomCenter" RelativeWidth="DropdownWidth.Adaptive" >
-                        <MudTextField T="string" AutoFocus ReadOnly Text=@GetShareLink() FullWidth />
-                    </MudPopover>
-                    <MudIconButton Class="pa-1 extra-small" Icon="@Icons.Material.Filled.OpenInNew" Variant="Variant.Text" OnClick="NotifyOnPopout"/>
+                    <MudTooltip Text="Pin Item" Delay="500" ShowOnHover Placement=Placement.Bottom>
+                        <MudIconButton Class="pa-1 extra-small" OnClick="NotifyPin" Icon="@Icons.Material.Filled.PushPin" Variant="Variant.Text" Style="@(($"color: {(isPinned ? CustomTheme.Theme.PaletteDark.Tertiary : CustomTheme.Theme.PaletteDark.GrayDefault)}"))" />
+                    </MudTooltip>
+                    <MudTooltip Text="Popout" Delay="500" ShowOnHover Placement=Placement.Bottom>
+                        <MudIconButton Class="pa-1 extra-small" Icon="@Icons.Material.Filled.OpenInNew" Variant="Variant.Text" OnClick="NotifyOnPopout" />
+                    </MudTooltip>
                 </MudStack>
             }
             <MudSpacer/>
@@ -104,25 +104,9 @@
         return shouldRender;
     }
 
-    private string GetShareLink()
-    {
-        return $"{Navigation.BaseUri}talent/{Talent.Name}";
-    }
-
-    private void ToggleSharePopover()
-    {
-        _sharePopoverOpen = !_sharePopoverOpen;
-        shouldRender = true;
-    }
-
     private void NotifyOnPopout()
     {
         OnPopout.InvokeAsync(Talent.Name);
-    }
-
-    private void NavigateToTalent()
-    {
-        Navigation.NavigateTo($"/talent/{Talent.Name}");
     }
 
     private async Task NotifyPin()

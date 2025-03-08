@@ -1,6 +1,128 @@
-﻿@page "/about"
+﻿@page "/"
 
-<h3>Under construction...</h3>
+<!-- Main Content -->
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudPaper Width="80%" Elevation="3" Class="pa-4">
+        <MudStack>
+            <MudText Align=Align.Center Typo="Typo.h4" GutterBottom>Welcome to SHDDB</MudText>
+            <MudText Align=Align.Center Typo="Typo.body1">
+                SHDDB is a community-driven resource for Tom Clancy's The Division 2.
+            </MudText>
+            <MudDivider />
+            <MudList T="string">
+                <MudListItem>
+                    <MudText Typo="Typo.body1" Align="Align.Center">
+                        Detailed and accurate Talent inspection and calculations using community approved formulas
+                    </MudText>
+                </MudListItem>
+                <MudListItem>
+                    <MudText Typo="Typo.body1" Align="Align.Center">
+                        Talent combination testing by building a loadout with your favourite talents
+                    </MudText>
+                </MudListItem>
+                <MudListItem>
+                    <MudText Typo="Typo.body1" Align="Align.Center">
+                        Sharing and visualising Builds and Talent combinations
+                    </MudText>
+                </MudListItem>
+            </MudList>
+            <MudDivider />
+            <MudText Align=Align.Center Typo="Typo.body1" Class="mt-2">
+                SHDDB is a work in progress! We're continuously adding new content and features.
+            </MudText>
+            <MudDivider />
+            <MudText Align="Align.Center" Typo="Typo.h5" GutterBottom>Progress Tracker</MudText>
+            <MudStack Row Justify="Justify.SpaceEvenly">
+                <MudCard Style="@($"background: {CustomTheme.Theme.PaletteDark.Dark}")">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <MudText Typo="Typo.h6">Talents</MudText>
+                                <MudSpacer />
+                                <MudChip T="string" Variant="Variant.Filled" Style="@($"color: {CustomTheme.Theme.PaletteDark.Dark}")" Color=Color.Warning Text="In-Progress" />
+                            </MudStack>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudList T="string">
+                            <MudListItem>
+                                <MudAlert Severity="Severity.Success">Initial Talent Page</MudAlert>
+                            </MudListItem>
+                            <MudListItem>
+                                <MudAlert Severity="Severity.Success">Initial Talent Page</MudAlert>
+                            </MudListItem>
+                            <MudSpacer/>
+                            <MudListItem>
+                                <MudAlert Severity="Severity.Warning">Incomplete Talents</MudAlert>
+                            </MudListItem>
+                            <MudListItem>
+                                <MudAlert Severity="Severity.Warning">Skill Talents</MudAlert>
+                            </MudListItem>
+                        </MudList>
+                    </MudCardContent>
+                </MudCard>
+                <MudCard Style="@($"background: {CustomTheme.Theme.PaletteDark.Dark}")">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <MudText Typo="Typo.h6">Builds</MudText>
+                                <MudSpacer />
+                                <MudChip T="string" Variant="Variant.Filled" Style="@($"color: {CustomTheme.Theme.PaletteDark.Dark}")" Color=Color.Error Text="Not Started" />
+                            </MudStack>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudList T="string">
+                            <MudListItem>
+                                <MudAlert Severity="Severity.Info">Basic Build Page</MudAlert>
+                            </MudListItem>
+                            <MudListItem>
+                                <MudAlert Severity="Severity.Info">Detailed Build Page</MudAlert>
+                            </MudListItem>
+                        </MudList>
+                    </MudCardContent>
+                </MudCard>
+                <MudCard Style="@($"background: {CustomTheme.Theme.PaletteDark.Dark}")">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <MudText Typo="Typo.h6">Comparisons</MudText>
+                                <MudSpacer />
+                                <MudChip T="string" Variant="Variant.Filled" Style="@($"color: {CustomTheme.Theme.PaletteDark.Dark}")" Color=Color.Error Text="Not Started" />
+                            </MudStack>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudList T="string">
+                            <MudListItem>
+                                <MudAlert Severity="Severity.Info">Basic Build Comparison</MudAlert>
+                            </MudListItem>
+                            <MudListItem>
+                                <MudAlert Severity="Severity.Info">Detailed Build Comparison</MudAlert>
+                            </MudListItem>
+                            <MudListItem>
+                                <MudAlert Severity="Severity.Info">Visualisation</MudAlert>
+                            </MudListItem>
+                        </MudList>
+                    </MudCardContent>
+                </MudCard>
+            </MudStack>
+        </MudStack>
+
+    </MudPaper>
+
+    <!-- Changelog Section -->
+    <MudPaper Width="80%" Elevation="2" Class="mt-4 pa-4">
+        <MudText Typo="Typo.h5" GutterBottom>Changelog</MudText>
+        <MudList T="string">
+            <MudListItem>
+                <MudText Typo="Typo.body2"><b>Version 0.0.1 (March 8, 2025)</b></MudText>
+                <MudText Typo="Typo.body2">- Initial release of SHDDB website.</MudText>
+                <MudText Typo="Typo.body2">- Basic content structure in place.</MudText>
+            </MudListItem>
+        </MudList>
+    </MudPaper>
+</MudContainer>
 
 @code {
 

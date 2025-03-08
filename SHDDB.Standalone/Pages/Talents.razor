@@ -1,10 +1,9 @@
-﻿@page "/"
-@page "/talents"
+﻿@page "/talents"
 
-@attribute [StreamRendering(true)]
 @inject IDialogService DialogService
 @inject NavigationManager Navigation
 
+@using Microsoft.AspNetCore.WebUtilities
 @using SHDDB.Standalone.Components.Talents
 @using System.Web
 
@@ -81,15 +80,14 @@ else
 
         @foreach (var talent in GetDisplayedTalents())
         {
-            <TalentCard @key=talent.Name Talent="@talent" ForceExpand="_allExpanded" OnPin="HandlePin" OnPopout="HandlePopout" />
+            <TalentCard @key=talent.Name Talent="@talent" ForceExpand="_allExpanded" OnPin="HandlePin" OnPopout="HandlePopoutEvent" />
         }
     </MudStack>
 }
 
 
 @code {
-    [SupplyParameterFromQuery]
-    private string? TalentName { get; set; }
+    [SupplyParameterFromQuery(Name = "name")] public string? TalentName { get; set; }
 
     private Dictionary<string, (TalentData Talent, TalentUiState State)> TalentDictionary { get; set; } = [];
     private TalentFilters TalentFilters = new();
@@ -107,6 +105,50 @@ else
     protected override async Task OnInitializedAsync()
     {
         TalentDictionary = await Task.Run(() => StaticData.Talents.ToDictionary(x => x.Name, x => (x, new TalentUiState())));
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (string.IsNullOrEmpty(TalentName) || !TalentDictionary.TryGetValue(TalentName, out var talent))
+        {
+            return;
+        }
+
+        var parameters = new DialogParameters<TalentCardDialog>
+        {
+            { x => x.Talent, talent.Talent }
+        };
+
+        var options = new DialogOptions()
+            {
+                CloseOnEscapeKey = true,
+                NoHeader = true,
+                BackgroundClass = "blur-background"
+            };
+
+        // Open the dialog
+        var dialogResult = await DialogService.ShowAsync<TalentCardDialog>(null, parameters, options);
+        var result = await dialogResult.Result;
+
+        // When the dialog has closed, return back to the previous page
+        HandleNavigation();
+    }
+
+    private void HandleNavigation(string? talentName = null)
+    {
+        if (talentName is null)
+        {
+            var removeQueryParam = Navigation.GetUriWithQueryParameter("name", (string?)null);
+            Navigation.NavigateTo(removeQueryParam);
+        }
+
+        var addQueryParam = Navigation.GetUriWithQueryParameter("name", talentName);
+        Navigation.NavigateTo(addQueryParam);
+    }
+
+    private void HandlePopoutEvent(string talentName)
+    {
+        HandleNavigation(talentName);
     }
 
     private IEnumerable<TalentData> GetDisplayedTalents()
@@ -138,25 +180,6 @@ else
     private void HandlePin(string talentName)
     {
         TalentDictionary[talentName].State.IsPinned = !TalentDictionary[talentName].State.IsPinned;
-    }
-
-    private Task HandlePopout(string talentName)
-    {
-        TalentName = talentName;
-
-        var parameters = new DialogParameters<TalentCardDialog>
-        {
-            { x => x.Talent, TalentDictionary[talentName].Talent }
-        };
-
-        var options = new DialogOptions()
-        {
-            CloseOnEscapeKey = true,
-            NoHeader = true,
-            BackgroundClass = "blur-background"
-        };
-
-        return DialogService.ShowAsync<TalentCardDialog>(talentName, parameters, options);
     }
 
     private void ToggleShowUnpinned()

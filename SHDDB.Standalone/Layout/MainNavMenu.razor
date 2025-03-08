@@ -1,9 +1,9 @@
 ﻿@using SHDDB.Standalone.Theme
 <MudNavMenu Bordered="true" Rounded="true">
-    <MudNavLink Href="/" Icon="@Icons.Material.Filled.Collections" Match="NavLinkMatch.Prefix">Talents</MudNavLink>
-    <MudNavGroup Title="Builders" Expanded="false">
+    <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.Prefix">Home</MudNavLink>
+    <MudNavLink Href="/talents" Icon="@Icons.Material.Filled.Collections" Match="NavLinkMatch.Prefix">Talents</MudNavLink>
+    <MudNavGroup Title="Builders" Icon="@Icons.Material.Filled.Build" Expanded="false">
         <MudNavLink Href="/builder/talents" Match="NavLinkMatch.Prefix">Talents</MudNavLink>
         <MudNavLink Href="/builder/full" Match="NavLinkMatch.Prefix">Full</MudNavLink>
     </MudNavGroup>
-    <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
 </MudNavMenu>
