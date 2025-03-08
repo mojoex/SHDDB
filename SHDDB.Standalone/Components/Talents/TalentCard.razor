@@ -1,13 +1,18 @@
-﻿<MudPaper MinWidth="350px" MaxWidth="350px" MinHeight="125px" Elevation="3" Class="talent-page flex-grow-1 rounded-xl pa-2" Style="@($"text-align: center; background: {CustomTheme.Theme.PaletteDark.Dark}")">
+﻿<MudPaper MinWidth="350px" MaxWidth="350px" MinHeight="125px" Elevation="3" Class="@($"{(!Standalone ? "talent-card" : "")} flex-grow-1 rounded-xl pa-2")" Style="@($"text-align: center; background: {CustomTheme.Theme.PaletteDark.Dark}")">
     <MudStack>
-        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" StretchItems="StretchItems.None" Class="px-2">
-            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.FlexStart" StretchItems="StretchItems.None" Spacing="0">
-                <MudChip T="string" Variant="Variant.Filled" Text="@Talent.Type.GetString()" Size="Size.Small" Style="@GetTypeChipStyle()" />
-                @if (Talent.Type != TalentType.GearsetBase)
-                {
-                    <MudChip T="string" Variant="Variant.Outlined" Text="@Talent.Slot.ToString()" Size="Size.Small" />
-                }
-            </MudStack>
+        <MudStack Row AlignItems="AlignItems.Center">
+            @if (!Standalone)
+            {
+                <MudStack Row Spacing="0">
+                    <MudTooltip Text="Pin Item" Delay="500" ShowOnHover Placement=Placement.Bottom>
+                        <MudIconButton Class="pa-1 extra-small" OnClick="NotifyPin" Icon="@Icons.Material.Filled.PushPin" Variant="Variant.Text" Style="@(($"color: {(isPinned ? CustomTheme.Theme.PaletteDark.Tertiary : CustomTheme.Theme.PaletteDark.GrayDefault)}"))" />
+                    </MudTooltip>
+                    <MudTooltip Text="Popout" Delay="500" ShowOnHover Placement=Placement.Bottom>
+                        <MudIconButton Class="pa-1 extra-small" Icon="@Icons.Material.Filled.OpenInNew" Variant="Variant.Text" OnClick="NotifyOnPopout" />
+                    </MudTooltip>
+                </MudStack>
+            }
+            <MudSpacer/>
             <MudStack Row Spacing="1">
                 @foreach (var talentValue in Talent.Values)
                 {
@@ -15,7 +20,7 @@
                 }
             </MudStack>
         </MudStack>
-        <div class="cursor-pointer" @onclick="OnExpandCollapseClick">
+        <div class="cursor-pointer" @onclick="ToggleExpandDetails">
             <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Center">
                 <MudText Typo="Typo.h5">@Talent.Name</MudText>
                 @if (Talent.Values.Any(x => !x.Complete))
@@ -26,20 +31,27 @@
                 }
             </MudStack>
         </div>
-        <MudCollapse Expanded="ExpandedDetails">
+        <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Center">
+            <MudChip T="string" Variant="Variant.Filled" Text="@Talent.Type.GetString()" Size="Size.Small" Style="@GetTypeChipStyle()" />
+            @if (Talent.Type != TalentType.GearsetBase)
+            {
+                <MudChip T="string" Variant="Variant.Outlined" Text="@Talent.Slot.ToString()" Size="Size.Small" />
+            }
+        </MudStack>
+        <MudCollapse Expanded="isExpanded || ForceExpand">
             <MudStack>
                 <MudStack Row Justify="Justify.Center">
                     @if (Talent.HasChestModifier)
                     {
                         <MudTooltip Text="Toggle Chest" Arrow Placement="Placement.Bottom">
-                            <MudToggleIconButton @bind-Toggled="_useChest" DropShadow Size="Size.Small" Icon="@Icons.Material.Filled.Shield" ToggledColor="Color.Success" Disabled="!ExpandedDetails" />
+                            <MudToggleIconButton ToggledChanged="ToggleChest" Toggled="_useChest" DropShadow Size="Size.Small" Icon="@Icons.Material.Filled.Shield" ToggledColor="Color.Success" />
                         </MudTooltip>
                     }
 
                     @if (Talent.HasBackpackModifier)
                     {
                         <MudTooltip Text="Toggle Backpack" Arrow Placement="Placement.Bottom">
-                            <MudToggleIconButton @bind-Toggled="_useBackpack" DropShadow Size="Size.Small" Icon="@Icons.Material.Filled.Backpack" ToggledColor="Color.Success" Disabled="!ExpandedDetails" />
+                            <MudToggleIconButton ToggledChanged="ToggleBackpack" Toggled="_useBackpack" DropShadow Size="Size.Small" Icon="@Icons.Material.Filled.Backpack" ToggledColor="Color.Success" />
                         </MudTooltip>
                     }
                 </MudStack>
@@ -51,26 +63,76 @@
 </MudPaper>
 
 @code {
+    [Inject] private NavigationManager Navigation { get; set; }
     [Parameter] public required TalentData Talent { get; set; }
     [Parameter] public bool Minimal { get; set; } = false;
-
-    [Parameter] public bool ExpandedDetails { get; set; } = false;
-
-    private bool shouldRender = false;
-
-    protected override bool ShouldRender() => shouldRender;
+    [Parameter] public bool Standalone { get; set; } = false;
+    [Parameter] public bool ForceExpand { get; set; } = false;
+    [Parameter] public EventCallback<string> OnPin { get; set; }
+    [Parameter] public EventCallback<string> OnPopout { get; set; }
 
     private bool _useBackpack { get; set; } = false;
     private bool _useChest { get; set; } = false;
+    private bool _sharePopoverOpen { get; set; } = false;
+
+    private bool isPinned = false;
+    private bool isExpanded = false;
+
+    private bool previousIsExpanded = false;
+
+    private bool shouldRender = false;
 
     protected override void OnParametersSet()
     {
+        if (previousIsExpanded != ForceExpand)
+        {
+            shouldRender = true;
+            previousIsExpanded = ForceExpand;
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (shouldRender)
+        {
+            shouldRender = false;
+        }
+    }
+
+    protected override bool ShouldRender()
+    {
+        return shouldRender;
+    }
+
+    private void NotifyOnPopout()
+    {
+        OnPopout.InvokeAsync(Talent.Name);
+    }
+
+    private async Task NotifyPin()
+    {
+        isPinned = !isPinned;
+        shouldRender = true;
+
+        await OnPin.InvokeAsync(Talent.Name);
+    }
+
+    private void ToggleExpandDetails()
+    {
+        isExpanded = !isExpanded;
         shouldRender = true;
     }
 
-    private void OnExpandCollapseClick()
+    private void ToggleChest()
     {
-        ExpandedDetails = !ExpandedDetails;
+        _useChest = !_useChest;
+        shouldRender = true;
+    }
+
+    private void ToggleBackpack()
+    {
+        _useBackpack = !_useBackpack;
+        shouldRender = true;
     }
 
     private string GetTypeChipStyle()

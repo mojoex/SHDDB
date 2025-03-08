@@ -1,5 +1,11 @@
-﻿@page "/"
+﻿@page "/talents"
+
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
+
+@using Microsoft.AspNetCore.WebUtilities
 @using SHDDB.Standalone.Components.Talents
+@using System.Web
 
 <PageTitle>Talents</PageTitle>
 
@@ -14,40 +20,40 @@
 
         @* Filter Menu *@
         <MudMenu Icon="@Icons.Material.Filled.FilterAlt" Variant="Variant.Filled" Dense>
-            <MudMenuItem Label="Clear" OnClick="ClearFilters" />
-            <MudDivider />
+            <MudMenuItem Label="Clear" OnClick="ClearFilters" Style="text-align: center" />
             <MudMenuItem>
-                <MudCheckBox T="bool" Dense Label="High-End" Value="@_typeFilters[TalentType.HighEnd]" ValueChanged=@(async (isChecked) => await ToggleFilter(TalentType.HighEnd, isChecked)) />
-            </MudMenuItem>
-            <MudMenuItem>
-                <MudCheckBox T="bool" Dense Label="Gearsets" Value="@_typeFilters[TalentType.GearsetBase]" ValueChanged=@(async (isChecked) => await ToggleFilter(TalentType.GearsetBase, isChecked)) />
-            </MudMenuItem>
-            <MudMenuItem>
-                <MudCheckBox T="bool" Dense Label="Perfect" Value="@_typeFilters[TalentType.Perfect]" ValueChanged=@(async (isChecked) => await ToggleFilter(TalentType.Perfect, isChecked)) />
-            </MudMenuItem>
-            <MudMenuItem>
-                <MudCheckBox T="bool" Dense Label="Exotic" Value="@_typeFilters[TalentType.Exotic]" ValueChanged=@(async (isChecked) => await ToggleFilter(TalentType.Exotic, isChecked)) />
+                <MudCheckBox T="bool" Dense Label="Gearsets" @bind-Value=TalentFilters.Types.Gearset />
             </MudMenuItem>
             <MudDivider />
             <MudMenuItem>
-                <MudCheckBox T="bool" Dense Label="Backpack" Value="@_slotFilters[Slot.Backpack]" ValueChanged=@(async (isChecked) => await ToggleFilter(Slot.Backpack, isChecked)) />
+                <MudCheckBox T="bool" Dense Label="Backpack" @bind-Value=TalentFilters.Slots.Backpack />
             </MudMenuItem>
             <MudMenuItem>
-                <MudCheckBox T="bool" Dense Label="Chest" Value="@_slotFilters[Slot.Chest]" ValueChanged=@(async (isChecked) => await ToggleFilter(Slot.Chest, isChecked)) />
+                <MudCheckBox T="bool" Dense Label="Chest" @bind-Value=TalentFilters.Slots.Chest />
             </MudMenuItem>
             <MudMenuItem>
-                <MudCheckBox T="bool" Dense Label="Weapon" Value="@_slotFilters[Slot.Weapon]" ValueChanged=@(async (isChecked) => await ToggleFilter(Slot.Weapon, isChecked)) />
+                <MudCheckBox T="bool" Dense Label="Weapon" @bind-Value=TalentFilters.Slots.Weapon />
+            </MudMenuItem>
+            <MudDivider />
+            <MudMenuItem>
+                <MudCheckBox T="bool" Dense Label="High-End" @bind-Value=TalentFilters.Types.HighEnd />
+            </MudMenuItem>
+            <MudMenuItem>
+                <MudCheckBox T="bool" Dense Label="Perfect" @bind-Value=TalentFilters.Types.Perfect />
+            </MudMenuItem>
+            <MudMenuItem>
+                <MudCheckBox T="bool" Dense Label="Exotic" @bind-Value=TalentFilters.Types.Exotic />
             </MudMenuItem>
         </MudMenu>
 
         <MudDivider Vertical="true" FlexItem />
-
         <MudButton OnClick=ToggleExpandAll Size=Size.Small Variant="Variant.Filled">@(_allExpanded ? "Collapse All" : "Expand All")</MudButton>
-
+        <MudDivider Vertical="true" FlexItem />
+        <MudButton OnClick=ToggleShowUnpinned Size=Size.Small Variant="Variant.Filled">@(_showUnpinned ? "Hide Unpinned" : "Show Unpinned")</MudButton>
         <MudDivider Vertical="true" FlexItem />
 
         @* Search Field *@
-        <MudTextField T="string" Value="@_searchText" Label="Search.. " Variant="Variant.Filled" ValueChanged=@(async (value) => await TextFilter(value).ConfigureAwait(false)) Immediate />
+        <MudTextField T="string" Label="Search.. " @bind-Value=_searchText Variant=Variant.Outlined DebounceInterval="500" Immediate />
     </MudStack>
 </MudPaper>
 
@@ -55,44 +61,36 @@
 
 @if (_listView)
 {
-    <MudExpansionPanels MultiExpansion="true" Outlined="false">
+    @* <MudExpansionPanels MultiExpansion="true" Outlined="false">
         @foreach (var talent in CurrentTalents)
         {
             <MudExpansionPanel Text="@talent.Name">
-                <TalentCard Talent="@talent" />
+                <TalentCard WrappedTalent="@talent" />
             </MudExpansionPanel>
         }
-    </MudExpansionPanels>
+    </MudExpansionPanels> *@
 }
 else
 {
     <MudStack AlignItems="AlignItems.Start" Justify="Justify.Center" Row Wrap="Wrap.Wrap">
-        @if (!CurrentTalents.Any())
+        @if (!TalentDictionary.Any())
         {
-            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="350px" Height="125px" />
-            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="350px" Height="125px" />
-            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="350px" Height="125px" />
-            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="350px" Height="125px" />
-            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="350px" Height="125px" />
+            @TalentSkeletonFragment
         }
 
-        @* <Virtualize TItem="TalentData" Items="CurrentTalents.ToList()" >
-            <TalentCard Talent="context" ExpandedDetails="_allExpanded"/>
-        </Virtualize> *@
-        @foreach (var talent in CurrentTalents)
+        @foreach (var talent in GetDisplayedTalents())
         {
-            <TalentCard Talent="@talent" ExpandedDetails="_allExpanded" />
+            <TalentCard @key=talent.Name Talent="@talent" ForceExpand="_allExpanded" OnPin="HandlePin" OnPopout="HandlePopoutEvent" />
         }
     </MudStack>
 }
 
 
 @code {
-    private IEnumerable<TalentData> CurrentTalents { get; set; } = [];
-    private int CurrentTalentCount => CurrentTalents.Count();
+    [SupplyParameterFromQuery(Name = "name")] public string? TalentName { get; set; }
 
-    private Dictionary<TalentType, bool> _typeFilters { get; set; } = [];
-    private Dictionary<Slot, bool> _slotFilters { get; set; } = [];
+    private Dictionary<string, (TalentData Talent, TalentUiState State)> TalentDictionary { get; set; } = [];
+    private TalentFilters TalentFilters = new();
 
     private bool _listView = false;
     private bool _filtersOpen = false;
@@ -100,24 +98,93 @@ else
 
     private bool _allExpanded { get; set; } = false;
 
+    private bool _showUnpinned { get; set; } = true;
+
+    private RenderFragment TalentSkeletonFragment =>@<MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="350px" Height="125px" />;
+
     protected override async Task OnInitializedAsync()
     {
-        CurrentTalents = await Task.Run(() => StaticData.Talents.OrderBy(x => x.Name));
+        TalentDictionary = await Task.Run(() => StaticData.Talents.ToDictionary(x => x.Name, x => (x, new TalentUiState())));
+    }
 
-        _typeFilters = new()
+    protected override async Task OnParametersSetAsync()
+    {
+        if (string.IsNullOrEmpty(TalentName) || !TalentDictionary.TryGetValue(TalentName, out var talent))
+        {
+            return;
+        }
+
+        var parameters = new DialogParameters<TalentCardDialog>
+        {
+            { x => x.Talent, talent.Talent }
+        };
+
+        var options = new DialogOptions()
             {
-                [TalentType.HighEnd] = false,
-                [TalentType.Perfect] = false,
-                [TalentType.Exotic] = false,
-                [TalentType.GearsetBase] = false
+                CloseOnEscapeKey = true,
+                NoHeader = true,
+                BackgroundClass = "blur-background"
             };
 
-        _slotFilters = new()
-            {
-                [Slot.Backpack] = false,
-                [Slot.Chest] = false,
-                [Slot.Weapon] = false
-            };
+        // Open the dialog
+        var dialogResult = await DialogService.ShowAsync<TalentCardDialog>(null, parameters, options);
+        var result = await dialogResult.Result;
+
+        // When the dialog has closed, return back to the previous page
+        HandleNavigation();
+    }
+
+    private void HandleNavigation(string? talentName = null)
+    {
+        if (talentName is null)
+        {
+            var removeQueryParam = Navigation.GetUriWithQueryParameter("name", (string?)null);
+            Navigation.NavigateTo(removeQueryParam);
+        }
+
+        var addQueryParam = Navigation.GetUriWithQueryParameter("name", talentName);
+        Navigation.NavigateTo(addQueryParam);
+    }
+
+    private void HandlePopoutEvent(string talentName)
+    {
+        HandleNavigation(talentName);
+    }
+
+    private IEnumerable<TalentData> GetDisplayedTalents()
+    {
+        if (!_showUnpinned)
+        {
+            return TalentDictionary.Where(x => x.Value.State.IsPinned && MatchesFilters(x.Value.Talent))
+                .OrderBy(x => x.Key)
+                .Select(x => x.Value.Talent);
+        }
+
+        return TalentDictionary.Where(x => x.Value.State.IsPinned && MatchesFilters(x.Value.Talent)).Select(x => x.Value.Talent)
+            .Union(TalentDictionary.Where(x => !x.Value.State.IsPinned && MatchesFilters(x.Value.Talent))
+            .OrderBy(x => x.Value.State.IsPinned)
+            .ThenBy(x => x.Key)
+            .Select(x => x.Value.Talent));
+    }
+
+    private bool DisplayPinnedOnly(bool isPinned)
+    {
+        if (_showUnpinned)
+        {
+            return true;
+        }
+
+        return isPinned;
+    }
+
+    private void HandlePin(string talentName)
+    {
+        TalentDictionary[talentName].State.IsPinned = !TalentDictionary[talentName].State.IsPinned;
+    }
+
+    private void ToggleShowUnpinned()
+    {
+        _showUnpinned = !_showUnpinned;
     }
 
     private void ToggleExpandAll()
@@ -130,57 +197,66 @@ else
         _filtersOpen = !_filtersOpen;
     }
 
-    private async Task ClearFilters()
+    private void ClearFilters()
     {
-        foreach (var value in _typeFilters)
-        {
-            _typeFilters[value.Key] = false;
-        }
-
-        foreach (var value in _slotFilters)
-        {
-            _slotFilters[value.Key] = false;
-        }
+        TalentFilters = new();
 
         _searchText = string.Empty;
-
-        await ApplyFilters();
     }
 
-    private async Task ToggleFilter(TalentType type, bool value)
+    private bool MatchesFilters(TalentData talent)
     {
-        _typeFilters[type] = value;
+        if (!TalentFilters.HasFilters)
+        {
+            return MatchesTextFilter(talent);
+        }
 
-        await ApplyFilters();
+        var selectedTypeFilters = TalentFilters.GetTypeFilters();
+        var slotFilters = TalentFilters.GetSlotFilters();
+
+        return MatchesTypeFilters(talent, selectedTypeFilters) && 
+            MatchesSlotFilters(talent, slotFilters) && 
+            MatchesGearsetFilter(talent, selectedTypeFilters) &&
+            MatchesTextFilter(talent);
     }
 
-    private async Task ToggleFilter(Slot type, bool value)
+    private bool MatchesSlotFilters(TalentData talent, List<Slot> slotFilters)
     {
-        _slotFilters[type] = value;
+        if (!slotFilters.Any())
+        {
+            return true;
+        }
 
-        await ApplyFilters();
+        return slotFilters.Contains(talent.Slot);
     }
 
-    private async Task TextFilter(string value)
+    private bool MatchesTypeFilters(TalentData talent, List<TalentType> selectedTypeFilters)
     {
-        _searchText = value;
+        if (!selectedTypeFilters.Any())
+        {
+            return true;
+        }
 
+        return selectedTypeFilters.Contains(talent.Type);
+    }
+
+    private bool MatchesGearsetFilter(TalentData talent, List<TalentType> selectedTypeFilters)
+    {
+        if (!TalentFilters.Types.Gearset)
+        {
+            return true;
+        }
+
+        return talent.Type == TalentType.GearsetBase;
+    }
+
+    private bool MatchesTextFilter(TalentData talent)
+    {
         if (string.IsNullOrEmpty(_searchText))
         {
-            CurrentTalents = CurrentTalents;
+            return true;
         }
 
-        else
-        {
-            CurrentTalents = await Task.Run(() => CurrentTalents.Where(x => x.Name.Contains(_searchText, StringComparison.OrdinalIgnoreCase)).OrderBy(x => x.Name));
-        }
-    }
-
-    private async Task ApplyFilters()
-    {
-        var selectedTypeFilters = _typeFilters.Any(x => x.Value) ? _typeFilters.Where(x => x.Value).Select(x => x.Key) : _typeFilters.Keys;
-        var slotFilters = _slotFilters.Any(x => x.Value) ? _slotFilters.Where(x => x.Value).Select(x => x.Key) : _slotFilters.Keys;
-
-        CurrentTalents = await Task.Run(() => StaticData.Talents.Where(x => selectedTypeFilters.Contains(x.Type) && slotFilters.Contains(x.Slot) || (_typeFilters[TalentType.GearsetBase] && x.Slot == Slot.None)));
+        return talent.Name.StartsWith(_searchText, StringComparison.OrdinalIgnoreCase);
     }
 }
