@@ -11,38 +11,17 @@
     <MudPaper Width="80%" Elevation="3" Class="pa-4">
         <MudStack Spacing="4">
             <MudText Align=Align.Center Typo="Typo.h4">Welcome to SHDDB</MudText>
-            @if (changelog == null)
+            @if (LatestVersion == null)
             {
                 <MudSkeleton SkeletonType="SkeletonType.Rectangle" />
             }
             else
             {
                 <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center">
-                    <MudChip T="string" Text="@changelog.Version.AsString()" Variant="Variant.Filled" Color="Color.Primary" />
-                    <MudChip T="string" Text="@changelog.TitleUpdate" Variant="Variant.Filled" Color="Color.Secondary" />
+                    <MudChip T="string" Text="@LatestVersion" Variant="Variant.Outlined" Color="Color.Success"/>
+                    <MudChip T="string" Text="@TitleUpdate" Variant="Variant.Outlined" Color="Color.Secondary" />
                 </MudStack>
             }
-            <MudText Align=Align.Center Typo="Typo.body1">
-                SHDDB is a community-driven resource for Tom Clancy's The Division 2.
-            </MudText>
-            <MudDivider />
-            <MudList T="string">
-                <MudListItem>
-                    <MudText Typo="Typo.body1" Align="Align.Center">
-                        Detailed and accurate Talent inspection and calculations using community approved formulas
-                    </MudText>
-                </MudListItem>
-                <MudListItem>
-                    <MudText Typo="Typo.body1" Align="Align.Center">
-                        Talent combination testing by building a loadout with your favourite talents
-                    </MudText>
-                </MudListItem>
-                <MudListItem>
-                    <MudText Typo="Typo.body1" Align="Align.Center">
-                        Sharing and visualising Builds and Talent combinations
-                    </MudText>
-                </MudListItem>
-            </MudList>
             <MudDivider />
             <MudText Align=Align.Center Typo="Typo.body1" Class="mt-2">
                 SHDDB is a work in progress! We're continuously adding new content and features.
@@ -72,7 +51,14 @@
                                     {
                                         <MudListItem Href="@issue.Url">
                                             <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" StretchItems="StretchItems.Start">
-                                                <MudAlert Severity="Severity.Info" Variant="Variant.Text" Icon="@Icons.Material.Filled.Refresh">@issue.Title</MudAlert>
+                                                <MudTooltip Text="In Progress" Delay="500" Placement="Placement.Left">
+                                                    <MudStack Row AlignItems="AlignItems.Start">
+                                                        <MudProgressCircular Color="Color.Info" Indeterminate Size="Size.Small" />
+                                                        <MudDivider FlexItem Vertical />
+                                                        <MudText Typo="Typo.body2">@issue.Title</MudText>
+                                                    </MudStack>
+                                                </MudTooltip>
+                                                <MudSpacer/>
                                                 @foreach (var label in issue.Labels)
                                                 {
                                                     <MudChip T="string" Color="@(label == "bug" ? Color.Error : Color.Warning)" Text="@label" Variant="Variant.Text" Size="Size.Small" />
@@ -88,7 +74,13 @@
                                     {
                                         <MudListItem Href="@issue.Url">
                                             <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" StretchItems="StretchItems.Start">
-                                                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense>@issue.Title</MudAlert>
+                                                <MudTooltip Text="Not Started" Delay="500" Placement="Placement.Left">
+                                                    <MudStack Row AlignItems="AlignItems.Start">
+                                                        <MudIcon Icon="@Icons.Material.Outlined.Circle" Size="Size.Small" />
+                                                        <MudDivider FlexItem Vertical />
+                                                        <MudText Typo="Typo.body2">@issue.Title</MudText>
+                                                    </MudStack>
+                                                </MudTooltip>
                                                 @foreach (var label in issue.Labels)
                                                 {
                                                     <MudChip T="string" Color="@(label == "bug" ? Color.Error : Color.Warning)" Text="@label" Variant="Variant.Text" Size="Size.Small" />
@@ -110,7 +102,7 @@
     <MudPaper Width="80%" Elevation="2" Class="mt-4 pa-4">
         <MudText Typo="Typo.h5" GutterBottom>Changelog</MudText>
         <MudList T="string">
-            @if (changelog == null)
+            @if (!Releases.Any())
             {
                 <MudListItem>
                     <MudSkeleton SkeletonType="SkeletonType.Text"/>
@@ -118,21 +110,22 @@
             }
             else
             {
-                <MudListItem>
-                    <MudText Typo="Typo.body2"><b>LATEST: @changelog.Version.AsString() (@latest!.Date)</b></MudText>
-                    @foreach (var change in latest!.Changelog)
-                    {
-                        <MudText Typo="Typo.body2">- @change</MudText>
-                    }
-                </MudListItem>
-                @foreach (var release in changelog.Releases.Where(x => x.Key != changelog.Version.AsString()))
+                @foreach (var release in Releases.OrderByDescending(x => x.Date))
                 {
-                    <MudListItem>
-                        <MudText Typo="Typo.body2"><b>@release.Key (@release.Value.Date)</b></MudText>
-                        @foreach (var change in release.Value.Changelog)
-                        {
-                            <MudText Typo="Typo.body2">- @change</MudText>
-                        }
+                    <MudListItem Href="@release.Uri">
+                        <MudStack>
+                            <MudStack Row Justify="Justify.FlexStart" AlignItems="AlignItems.Center">
+                                @if (release.Version == LatestVersion)
+                                {
+                                    <MudChip T="string" Color="Color.Success" Size="Size.Small" Variant="Variant.Outlined">latest</MudChip>
+                                }
+                                <MudText Typo="Typo.body1"><b>@release.Version (@release.Date.ToLongDateString())</b></MudText>
+                            </MudStack>
+                            @foreach (var change in release.Notes)
+                            {
+                                <MudText Typo="Typo.body2">@change</MudText>
+                            }
+                        </MudStack>
                     </MudListItem>
                 }
             }
@@ -141,16 +134,68 @@
 </MudContainer>
 
 @code {
-    private Changelog? changelog;
-    private Release? latest;
-
+    private string LatestVersion => Releases.FirstOrDefault()?.Version ?? "v0.0.1";
+    private string? TitleUpdate { get; set; }
     private Dictionary<string, List<GithubIssue>> GithubIssues = [];
+    private List<Release> Releases = [];
 
     protected override async Task OnInitializedAsync()
     {
-        changelog = await Http.GetFromJsonAsync<Changelog>("/data/changelog.json");
+        var appJson = await Http.GetFromJsonAsync<JsonDocument>("/app.json");
 
-        latest = changelog!.Releases[changelog.Version.AsString()];
+        TitleUpdate = appJson.RootElement.GetProperty("titleUpdate").GetString();
+
+        await GetGithubIssues();
+
+        await GetChangelog();
+    }
+
+    private async Task GetChangelog()
+    {
+        Releases = [];
+
+        Http.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+        var releases = await Http.GetFromJsonAsync<JsonDocument>("https://api.github.com/repos/mojoex/shddb/releases");
+
+        foreach (var release in releases.RootElement.EnumerateArray())
+        {
+            Release releaseEntry = new();
+
+            if (release.TryGetProperty("tag_name", out var tagNameProperty))
+            {
+                releaseEntry.Version = tagNameProperty.GetString();
+            }
+
+            if (release.TryGetProperty("published_at", out var publishedAtProperty))
+            {
+                releaseEntry.Date = publishedAtProperty.GetDateTime();
+            }
+
+            if (release.TryGetProperty("html_url", out var uriProperty))
+            {
+                releaseEntry.Uri = uriProperty.GetString();
+            }
+
+            if (release.TryGetProperty("body", out var bodyProperty))
+            {
+                foreach (var change in bodyProperty.GetString().Split("\n"))
+                {
+                    if (string.IsNullOrWhiteSpace(change) || !change.StartsWith('*'))
+                    {
+                        continue;
+                    }
+
+                    releaseEntry.Notes.Add(change);
+                }
+            }
+
+            Releases.Add(releaseEntry);
+        }
+    }
+
+    private async Task GetGithubIssues()
+    {
+        GithubIssues = [];
 
         Http.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
         var issues = await Http.GetFromJsonAsync<JsonDocument>("https://api.github.com/repos/mojoex/SHDDB/issues?state=open");
