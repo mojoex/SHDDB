@@ -1,0 +1,25 @@
+{
+  "version": {
+    "major": 0,
+    "minor": 0,
+    "patch": 2,
+    "tag": "test"
+  },
+  "titleUpdate": "Y6S2",
+  "releases": {
+    "0.0.1-test": {
+      "date": "2025-03-09",
+      "changelog": [
+        "Initial Talents page",
+        "Initial website implementation"
+      ]
+    },
+    "0.0.2-test": {
+      "date": "2025-03-09",
+      "changelog": [
+        "Add version tracking and changelog",
+        "Disable list Talent view (to be completed later)"
+      ]
+    }
+  }
+}

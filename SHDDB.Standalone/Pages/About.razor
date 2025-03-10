@@ -1,10 +1,27 @@
 ﻿@page "/"
 
+@inject HttpClient Http
+
+@using SHDDB.DTO.Configuration
+@using System.Text.Json
+@using System.Text.Json.Nodes
+
 <!-- Main Content -->
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <MudPaper Width="80%" Elevation="3" Class="pa-4">
-        <MudStack>
-            <MudText Align=Align.Center Typo="Typo.h4" GutterBottom>Welcome to SHDDB</MudText>
+        <MudStack Spacing="4">
+            <MudText Align=Align.Center Typo="Typo.h4">Welcome to SHDDB</MudText>
+            @if (changelog == null)
+            {
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" />
+            }
+            else
+            {
+                <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center">
+                    <MudChip T="string" Text="@changelog.Version.AsString()" Variant="Variant.Filled" Color="Color.Primary" />
+                    <MudChip T="string" Text="@changelog.TitleUpdate" Variant="Variant.Filled" Color="Color.Secondary" />
+                </MudStack>
+            }
             <MudText Align=Align.Center Typo="Typo.body1">
                 SHDDB is a community-driven resource for Tom Clancy's The Division 2.
             </MudText>
@@ -32,80 +49,58 @@
             </MudText>
             <MudDivider />
             <MudText Align="Align.Center" Typo="Typo.h5" GutterBottom>Progress Tracker</MudText>
-            <MudStack Row Justify="Justify.SpaceEvenly">
-                <MudCard Style="@($"background: {CustomTheme.Theme.PaletteDark.Dark}")">
-                    <MudCardHeader>
-                        <CardHeaderContent>
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <MudText Typo="Typo.h6">Talents</MudText>
-                                <MudSpacer />
-                                <MudChip T="string" Variant="Variant.Filled" Style="@($"color: {CustomTheme.Theme.PaletteDark.Dark}")" Color=Color.Warning Text="In-Progress" />
-                            </MudStack>
-                        </CardHeaderContent>
-                    </MudCardHeader>
-                    <MudCardContent>
-                        <MudList T="string">
-                            <MudListItem>
-                                <MudAlert Severity="Severity.Success">Initial Weapon Damage Talent Specs</MudAlert>
-                            </MudListItem>
-                            <MudListItem>
-                                <MudAlert Severity="Severity.Success">Initial Talent Page</MudAlert>
-                            </MudListItem>
-                            <MudSpacer/>
-                            <MudListItem>
-                                <MudAlert Severity="Severity.Warning">Incomplete Talents</MudAlert>
-                            </MudListItem>
-                            <MudListItem>
-                                <MudAlert Severity="Severity.Warning">Skill Talents</MudAlert>
-                            </MudListItem>
-                        </MudList>
-                    </MudCardContent>
-                </MudCard>
-                <MudCard Style="@($"background: {CustomTheme.Theme.PaletteDark.Dark}")">
-                    <MudCardHeader>
-                        <CardHeaderContent>
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <MudText Typo="Typo.h6">Builds</MudText>
-                                <MudSpacer />
-                                <MudChip T="string" Variant="Variant.Filled" Style="@($"color: {CustomTheme.Theme.PaletteDark.Dark}")" Color=Color.Error Text="Not Started" />
-                            </MudStack>
-                        </CardHeaderContent>
-                    </MudCardHeader>
-                    <MudCardContent>
-                        <MudList T="string">
-                            <MudListItem>
-                                <MudAlert Severity="Severity.Info">Basic Build Page</MudAlert>
-                            </MudListItem>
-                            <MudListItem>
-                                <MudAlert Severity="Severity.Info">Detailed Build Page</MudAlert>
-                            </MudListItem>
-                        </MudList>
-                    </MudCardContent>
-                </MudCard>
-                <MudCard Style="@($"background: {CustomTheme.Theme.PaletteDark.Dark}")">
-                    <MudCardHeader>
-                        <CardHeaderContent>
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <MudText Typo="Typo.h6">Comparisons</MudText>
-                                <MudSpacer />
-                                <MudChip T="string" Variant="Variant.Filled" Style="@($"color: {CustomTheme.Theme.PaletteDark.Dark}")" Color=Color.Error Text="Not Started" />
-                            </MudStack>
-                        </CardHeaderContent>
-                    </MudCardHeader>
-                    <MudCardContent>
-                        <MudList T="string">
-                            <MudListItem>
-                                <MudAlert Severity="Severity.Info">Basic Build Comparison</MudAlert>
-                            </MudListItem>
-                            <MudListItem>
-                                <MudAlert Severity="Severity.Info">Detailed Build Comparison</MudAlert>
-                            </MudListItem>
-                            <MudListItem>
-                                <MudAlert Severity="Severity.Info">Visualisation</MudAlert>
-                            </MudListItem>
-                        </MudList>
-                    </MudCardContent>
-                </MudCard>
+            <MudStack Row Justify="Justify.SpaceEvenly" Wrap="Wrap.Wrap">
+                @if (!GithubIssues.Any())
+                {
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle"/>
+                }
+                else
+                {
+                    foreach (var githubIssue in GithubIssues)
+                    {
+                        <MudCard Style="@($"background: {CustomTheme.Theme.PaletteDark.Dark}")">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center">
+                                        <MudText Typo="Typo.h6">@githubIssue.Key</MudText>
+                                    </MudStack>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudList T="string">
+                                    @foreach (var issue in githubIssue.Value.Where(x => x.InProgress))
+                                    {
+                                        <MudListItem Href="@issue.Url">
+                                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" StretchItems="StretchItems.Start">
+                                                <MudAlert Severity="Severity.Info" Variant="Variant.Text" Icon="@Icons.Material.Filled.Refresh">@issue.Title</MudAlert>
+                                                @foreach (var label in issue.Labels)
+                                                {
+                                                    <MudChip T="string" Color="@(label == "bug" ? Color.Error : Color.Warning)" Text="@label" Variant="Variant.Text" Size="Size.Small" />
+                                                }
+                                            </MudStack>
+                                        </MudListItem>
+                                    }
+                                    @if (githubIssue.Value.Any(x => x.InProgress) && githubIssue.Value.Any(x => !x.InProgress))
+                                    {
+                                        <MudDivider DividerType="DividerType.Middle" />
+                                    }
+                                    @foreach (var issue in githubIssue.Value.Where(x => !x.InProgress))
+                                    {
+                                        <MudListItem Href="@issue.Url">
+                                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" StretchItems="StretchItems.Start">
+                                                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense>@issue.Title</MudAlert>
+                                                @foreach (var label in issue.Labels)
+                                                {
+                                                    <MudChip T="string" Color="@(label == "bug" ? Color.Error : Color.Warning)" Text="@label" Variant="Variant.Text" Size="Size.Small" />
+                                                }
+                                            </MudStack>
+                                        </MudListItem>
+                                    }
+                                </MudList>
+                            </MudCardContent>
+                        </MudCard>
+                    }
+                }
             </MudStack>
         </MudStack>
 
@@ -115,15 +110,99 @@
     <MudPaper Width="80%" Elevation="2" Class="mt-4 pa-4">
         <MudText Typo="Typo.h5" GutterBottom>Changelog</MudText>
         <MudList T="string">
-            <MudListItem>
-                <MudText Typo="Typo.body2"><b>Version 0.0.1 (March 8, 2025)</b></MudText>
-                <MudText Typo="Typo.body2">- Initial release of SHDDB website.</MudText>
-                <MudText Typo="Typo.body2">- Basic content structure in place.</MudText>
-            </MudListItem>
+            @if (changelog == null)
+            {
+                <MudListItem>
+                    <MudSkeleton SkeletonType="SkeletonType.Text"/>
+                </MudListItem>
+            }
+            else
+            {
+                <MudListItem>
+                    <MudText Typo="Typo.body2"><b>LATEST: @changelog.Version.AsString() (@latest!.Date)</b></MudText>
+                    @foreach (var change in latest!.Changelog)
+                    {
+                        <MudText Typo="Typo.body2">- @change</MudText>
+                    }
+                </MudListItem>
+                @foreach (var release in changelog.Releases.Where(x => x.Key != changelog.Version.AsString()))
+                {
+                    <MudListItem>
+                        <MudText Typo="Typo.body2"><b>@release.Key (@release.Value.Date)</b></MudText>
+                        @foreach (var change in release.Value.Changelog)
+                        {
+                            <MudText Typo="Typo.body2">- @change</MudText>
+                        }
+                    </MudListItem>
+                }
+            }
         </MudList>
     </MudPaper>
 </MudContainer>
 
 @code {
+    private Changelog? changelog;
+    private Release? latest;
 
+    private Dictionary<string, List<GithubIssue>> GithubIssues = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        changelog = await Http.GetFromJsonAsync<Changelog>("/data/changelog.json");
+
+        latest = changelog!.Releases[changelog.Version.AsString()];
+
+        Http.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+        var issues = await Http.GetFromJsonAsync<JsonDocument>("https://api.github.com/repos/mojoex/SHDDB/issues?state=open");
+
+        foreach (var issue in issues.RootElement.EnumerateArray())
+        {
+            GithubIssue githubIssue = new();
+
+            string milestone = "Uncategorized";
+
+            if (issue.TryGetProperty("milestone", out var milestoneProperty))
+            {
+                milestone = milestoneProperty.GetProperty("title").GetString();
+            }
+
+            if (!issue.TryGetProperty("title", out var titleProperty))
+            {
+                continue;
+            }
+
+            githubIssue.Title = titleProperty.GetString();
+
+            if (issue.TryGetProperty("assignee", out var assigneeProperty))
+            {
+                if (assigneeProperty.ValueKind != JsonValueKind.Null)
+                {
+                    githubIssue.InProgress = true;
+                }
+            }
+
+            githubIssue.Url = issue.GetProperty("html_url").GetString();
+            githubIssue.Labels = issue.GetProperty("labels").EnumerateArray().Select(x => x.GetProperty("name").GetString()).ToList();
+
+            if (GithubIssues.TryGetValue(milestone, out var githubMilestone))
+            {
+                githubMilestone.Add(githubIssue);
+            }
+            else
+            {
+                GithubIssues.Add(milestone, [githubIssue]);
+            }
+        }
+    }
+
+    class GithubIssue
+    {
+        internal string Title { get; set; }
+
+        internal string Url { get; set; }
+
+        internal List<string> Labels { get; set; }
+
+        internal bool InProgress { get; set; }
+    }
 }
