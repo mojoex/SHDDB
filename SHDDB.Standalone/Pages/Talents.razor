@@ -72,7 +72,15 @@
 }
 else
 {
-    <MudStack AlignItems="AlignItems.Start" Justify="Justify.Center" Row Wrap="Wrap.Wrap">
+    <MudGrid Spacing="8" Justify="Justify.Center">
+        @foreach (var talent in GetDisplayedTalents())
+        {
+            <MudItem Class="d-flex align-start justify-center" xs="11" sm="9" md="7" lg="5" xl="3" xxl="2">
+                <TalentCard @key=talent.Name Talent="@talent" Expand="@(_allExpanded || TalentDictionary[talent.Name].State.IsExpanded)" Pinned="TalentDictionary[talent.Name].State.IsPinned" OnPin="HandlePin" OnPopout="HandlePopoutEvent" />
+            </MudItem>
+        }
+    </MudGrid>
+    @* <MudStack AlignItems="AlignItems.Start" Justify="Justify.Center" Row Wrap="Wrap.Wrap">
         @if (!TalentDictionary.Any())
         {
             @TalentSkeletonFragment
@@ -82,7 +90,7 @@ else
         {
             <TalentCard @key=talent.Name Talent="@talent" ForceExpand="_allExpanded" OnPin="HandlePin" OnPopout="HandlePopoutEvent" />
         }
-    </MudStack>
+    </MudStack> *@
 }
 
 

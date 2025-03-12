@@ -38,7 +38,7 @@
                 <MudChip T="string" Variant="Variant.Outlined" Text="@Talent.Slot.ToString()" Size="Size.Small" />
             }
         </MudStack>
-        <MudCollapse Expanded="isExpanded || ForceExpand">
+        <MudCollapse Expanded="isExpanded || Expand">
             <MudStack>
                 <MudStack Row Justify="Justify.Center">
                     @if (Talent.HasChestModifier)
@@ -67,7 +67,8 @@
     [Parameter] public required TalentData Talent { get; set; }
     [Parameter] public bool Minimal { get; set; } = false;
     [Parameter] public bool Standalone { get; set; } = false;
-    [Parameter] public bool ForceExpand { get; set; } = false;
+    [Parameter] public bool Expand { get; set; } = false;
+    [Parameter] public bool Pinned { get; set; } = false;
     [Parameter] public EventCallback<string> OnPin { get; set; }
     [Parameter] public EventCallback<string> OnPopout { get; set; }
 
@@ -84,10 +85,10 @@
 
     protected override void OnParametersSet()
     {
-        if (previousIsExpanded != ForceExpand)
+        if (previousIsExpanded != Expand)
         {
             shouldRender = true;
-            previousIsExpanded = ForceExpand;
+            previousIsExpanded = Expand;
         }
     }
 
