@@ -12,7 +12,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.8" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.13" />
     <PackageReference Include="MudBlazor" Version="8.2.0" />
-    <PackageReference Include="MudBlazor.ThemeManager" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +20,10 @@
     <ProjectReference Include="..\SHDDB.DataProvider\SHDDB.DataProvider.csproj" />
     <ProjectReference Include="..\SHDDB.DTO\SHDDB.DTO.csproj" />
   </ItemGroup>
+	
+	<PropertyGroup>
+		<RunAOTCompilation>true</RunAOTCompilation>
+	</PropertyGroup>
 
   <ItemGroup>
     <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />

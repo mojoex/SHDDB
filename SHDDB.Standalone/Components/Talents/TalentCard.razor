@@ -5,7 +5,7 @@
             {
                 <MudStack Row Spacing="0">
                     <MudTooltip Text="Pin Item" Delay="500" ShowOnHover Placement=Placement.Bottom>
-                        <MudIconButton Class="pa-1 extra-small" OnClick="NotifyPin" Icon="@Icons.Material.Filled.PushPin" Variant="Variant.Text" Style="@(($"color: {(isPinned ? CustomTheme.Theme.PaletteDark.Tertiary : CustomTheme.Theme.PaletteDark.GrayDefault)}"))" />
+                        <MudIconButton Class="pa-1 extra-small" OnClick="NotifyPin" Icon="@Icons.Material.Filled.PushPin" Variant="Variant.Text" Style="@(($"color: {(Pinned ? CustomTheme.Theme.PaletteDark.Tertiary : CustomTheme.Theme.PaletteDark.GrayDefault)}"))" />
                     </MudTooltip>
                     <MudTooltip Text="Popout" Delay="500" ShowOnHover Placement=Placement.Bottom>
                         <MudIconButton Class="pa-1 extra-small" Icon="@Icons.Material.Filled.OpenInNew" Variant="Variant.Text" OnClick="NotifyOnPopout" />
@@ -38,7 +38,7 @@
                 <MudChip T="string" Variant="Variant.Outlined" Text="@Talent.Slot.ToString()" Size="Size.Small" />
             }
         </MudStack>
-        <MudCollapse Expanded="isExpanded || Expand">
+        <MudCollapse Expanded="Expanded">
             <MudStack>
                 <MudStack Row Justify="Justify.Center">
                     @if (Talent.HasChestModifier)
@@ -67,73 +67,73 @@
     [Parameter] public required TalentData Talent { get; set; }
     [Parameter] public bool Minimal { get; set; } = false;
     [Parameter] public bool Standalone { get; set; } = false;
-    [Parameter] public bool Expand { get; set; } = false;
+    [Parameter] public bool Expanded { get; set; } = false;
     [Parameter] public bool Pinned { get; set; } = false;
     [Parameter] public EventCallback<string> OnPin { get; set; }
     [Parameter] public EventCallback<string> OnPopout { get; set; }
+    [Parameter] public EventCallback<string> OnExpand { get; set; }
+
+    private PreviousTalentCardParams previousParams { get; set; }
+
+    class PreviousTalentCardParams
+    {
+        internal bool Expanded { get; set; }
+
+        internal bool Pinned { get; set; }
+    }
 
     private bool _useBackpack { get; set; } = false;
     private bool _useChest { get; set; } = false;
-    private bool _sharePopoverOpen { get; set; } = false;
 
-    private bool isPinned = false;
-    private bool isExpanded = false;
+    private bool _shouldRender { get; set; }
 
-    private bool previousIsExpanded = false;
-
-    private bool shouldRender = false;
-
-    protected override void OnParametersSet()
+    protected override void OnInitialized()
     {
-        if (previousIsExpanded != Expand)
-        {
-            shouldRender = true;
-            previousIsExpanded = Expand;
-        }
+        previousParams = new()
+            {
+                Expanded = Expanded,
+                Pinned = Pinned
+            };
     }
 
     protected override void OnAfterRender(bool firstRender)
     {
-        if (shouldRender)
-        {
-            shouldRender = false;
-        }
+        previousParams.Expanded = Expanded;
+        previousParams.Pinned = Pinned;
+
+        _shouldRender = false;
     }
 
     protected override bool ShouldRender()
     {
-        return shouldRender;
+        return _shouldRender || previousParams.Expanded != Expanded || previousParams.Pinned != Pinned;
     }
 
-    private void NotifyOnPopout()
+    private async Task NotifyOnPopout()
     {
-        OnPopout.InvokeAsync(Talent.Name);
+        await OnPopout.InvokeAsync(Talent.Name);
     }
 
     private async Task NotifyPin()
     {
-        isPinned = !isPinned;
-        shouldRender = true;
-
         await OnPin.InvokeAsync(Talent.Name);
     }
 
-    private void ToggleExpandDetails()
+    private async Task ToggleExpandDetails()
     {
-        isExpanded = !isExpanded;
-        shouldRender = true;
+        await OnExpand.InvokeAsync(Talent.Name);
     }
 
     private void ToggleChest()
     {
+        _shouldRender = true;
         _useChest = !_useChest;
-        shouldRender = true;
     }
 
     private void ToggleBackpack()
     {
+        _shouldRender = true;
         _useBackpack = !_useBackpack;
-        shouldRender = true;
     }
 
     private string GetTypeChipStyle()
