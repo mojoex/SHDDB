@@ -12,8 +12,13 @@
 @* Filtering Paper *@
 <MudPaper MinWidth="100%" Elevation="25" Class="pa-4 mt-4">
     <MudStack Row StretchItems="StretchItems.End" Spacing="2">
+        <MudButton OnClick=ToggleExpandAll Size=Size.Small Variant="Variant.Filled">@(_allExpanded ? "Collapse All" : "Expand All")</MudButton>
+        <MudDivider Vertical="true" FlexItem />
+        <MudButton OnClick=ToggleShowUnpinned Size=Size.Small Variant="Variant.Filled">@(_showUnpinned ? "Hide Unpinned" : "Show Unpinned")</MudButton>
+        <MudDivider Vertical="true" FlexItem />
+
         @* Page View Style *@
-        <MudMenu Icon="@Icons.Material.Filled.FilterList" Class="ml-2" Variant="Variant.Filled" Dense>
+        <MudMenu Icon="@Icons.Material.Filled.FilterList" Variant="Variant.Filled" Dense>
             @* <MudMenuItem Icon="@Icons.Material.Filled.List" @onclick="() => _listView = true" /> *@
             <MudMenuItem Icon="@Icons.Material.Filled.GridView" @onclick="() => _listView = false" />
         </MudMenu>
@@ -47,10 +52,6 @@
         </MudMenu>
 
         <MudDivider Vertical="true" FlexItem />
-        <MudButton OnClick=ToggleExpandAll Size=Size.Small Variant="Variant.Filled">@(_allExpanded ? "Collapse All" : "Expand All")</MudButton>
-        <MudDivider Vertical="true" FlexItem />
-        <MudButton OnClick=ToggleShowUnpinned Size=Size.Small Variant="Variant.Filled">@(_showUnpinned ? "Hide Unpinned" : "Show Unpinned")</MudButton>
-        <MudDivider Vertical="true" FlexItem />
 
         @* Search Field *@
         <MudTextField T="string" Label="Search.. " @bind-Value=_searchText Variant=Variant.Outlined DebounceInterval="500" Immediate />
@@ -72,17 +73,20 @@
 }
 else
 {
-    <MudStack AlignItems="AlignItems.Start" Justify="Justify.Center" Row Wrap="Wrap.Wrap">
-        @if (!TalentDictionary.Any())
-        {
-            @TalentSkeletonFragment
-        }
-
+    <MudGrid Spacing="8" Justify="Justify.Center">
         @foreach (var talent in GetDisplayedTalents())
         {
-            <TalentCard @key=talent.Name Talent="@talent" ForceExpand="_allExpanded" OnPin="HandlePin" OnPopout="HandlePopoutEvent" />
+            <MudItem Class="d-flex align-start justify-center" xs="11" sm="9" md="7" lg="5" xl="3" xxl="2">
+                <TalentCard @key=talent 
+                    Talent="@talent" 
+                    Expanded="@(_allExpanded || TalentDictionary[talent.Name].State.IsExpanded)" 
+                    Pinned="TalentDictionary[talent.Name].State.IsPinned" 
+                    OnPin="HandlePin" 
+                    OnExpand="HandleExpand"
+                    OnPopout="HandlePopoutEvent" />
+            </MudItem>
         }
-    </MudStack>
+    </MudGrid>
 }
 
 
@@ -136,14 +140,8 @@ else
 
     private void HandleNavigation(string? talentName = null)
     {
-        if (talentName is null)
-        {
-            var removeQueryParam = Navigation.GetUriWithQueryParameter("name", (string?)null);
-            Navigation.NavigateTo(removeQueryParam);
-        }
-
-        var addQueryParam = Navigation.GetUriWithQueryParameter("name", talentName);
-        Navigation.NavigateTo(addQueryParam);
+        var uri = Navigation.GetUriWithQueryParameter("name", talentName);
+        Navigation.NavigateTo(uri);
     }
 
     private void HandlePopoutEvent(string talentName)
@@ -180,6 +178,11 @@ else
     private void HandlePin(string talentName)
     {
         TalentDictionary[talentName].State.IsPinned = !TalentDictionary[talentName].State.IsPinned;
+    }
+
+    private void HandleExpand(string talentName)
+    {
+        TalentDictionary[talentName].State.IsExpanded = !TalentDictionary[talentName].State.IsExpanded;
     }
 
     private void ToggleShowUnpinned()
@@ -222,41 +225,21 @@ else
 
     private bool MatchesSlotFilters(TalentData talent, List<Slot> slotFilters)
     {
-        if (!slotFilters.Any())
-        {
-            return true;
-        }
-
-        return slotFilters.Contains(talent.Slot);
+        return !slotFilters.Any() || slotFilters.Contains(talent.Slot);
     }
 
     private bool MatchesTypeFilters(TalentData talent, List<TalentType> selectedTypeFilters)
     {
-        if (!selectedTypeFilters.Any())
-        {
-            return true;
-        }
-
-        return selectedTypeFilters.Contains(talent.Type);
+        return !selectedTypeFilters.Any() || selectedTypeFilters.Contains(talent.Type);
     }
 
     private bool MatchesGearsetFilter(TalentData talent, List<TalentType> selectedTypeFilters)
     {
-        if (!TalentFilters.Types.Gearset)
-        {
-            return true;
-        }
-
-        return talent.Type == TalentType.GearsetBase;
+        return !TalentFilters.Types.Gearset || talent.Type == TalentType.GearsetBase;
     }
 
     private bool MatchesTextFilter(TalentData talent)
     {
-        if (string.IsNullOrEmpty(_searchText))
-        {
-            return true;
-        }
-
-        return talent.Name.StartsWith(_searchText, StringComparison.OrdinalIgnoreCase);
+        return string.IsNullOrEmpty(_searchText) || talent.Name.StartsWith(_searchText, StringComparison.OrdinalIgnoreCase);
     }
 }
